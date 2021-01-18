@@ -1,0 +1,7 @@
+*.swp
+*.o
+*.out
+*.log
+*.dat
+progrm/*
+data/*
