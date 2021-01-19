@@ -14,11 +14,11 @@ namespace yam
  *    no padding used
  */
    template<ndim_t NDIM,
-            grid_t   GT= primal>
+            grid_t GRID= primal>
    struct stride
   {
       static constexpr ndim_t ndim = NDIM;
-      static constexpr grid_t grid = GT;
+      static constexpr grid_t grid = GRID;
 
       using index_type = index<ndim,grid>;
       using shape_type = shape<ndim,grid>;
@@ -48,21 +48,21 @@ namespace yam
 // convenience typedefs
 
    // dimensions
-   template<grid_t GT>
-   using stride1 = stride<1,GT>;
+   template<grid_t grid= primal>
+   using stride1 = stride<1,grid>;
 
-   template<grid_t GT>
-   using stride2 = stride<2,GT>;
+   template<grid_t grid= primal>
+   using stride2 = stride<2,grid>;
 
-   template<grid_t GT>
-   using stride3 = stride<3,GT>;
+   template<grid_t grid= primal>
+   using stride3 = stride<3,grid>;
 
    // grid type
-   template<ndim_t NDIM>
-   using primal_stride = stride<NDIM,primal>;
+   template<ndim_t ndim>
+   using primal_stride = stride<ndim,primal>;
 
-   template<ndim_t NDIM>
-   using dual_stride = stride<NDIM,dual>;
+   template<ndim_t ndim>
+   using dual_stride = stride<ndim,dual>;
 
    // dimensions and grid type
    using primal_stride1 = stride<1,primal>;

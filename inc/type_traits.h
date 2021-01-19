@@ -20,12 +20,12 @@ namespace yam
    using grid_constant = std::integral_constant<grid_t,grid>;
 
 /*
- * ---------------------------------------------------------------
+ * ===============================================================
  *
  * Type traits to test if a type is a specialisation of the basic yamdal template types (index, shape etc).
  * Cannot do simple generic 'is_same_template' type trait because of non-type template parameters
  *
- * ---------------------------------------------------------------
+ * ===============================================================
  */
 
 /*
@@ -61,12 +61,12 @@ namespace yam
    inline constexpr bool is_shape_type_v = is_shape_type<A>::value;
 
 /*
- * ---------------------------------------------------------------
+ * ===============================================================
  *
  * Type traits to test if an indexable has helper members
  *    These helper members give information about the grid that an indexable is defined over, eg the dimension, and on related types, eg the index type of the grid
  *
- * ---------------------------------------------------------------
+ * ===============================================================
  */
 
 /*
@@ -152,7 +152,7 @@ namespace yam
    inline constexpr bool has_element_type_member_v = has_element_type_member<A>::value;
 
 /*
- * ---------------------------------------------------------------
+ * ===============================================================
  *
  * Type traits related to deducing information about the underlying grid of an indexable:
  *    This information includes values, eg the dimension, and types, eg the index type of the grid
@@ -160,7 +160,7 @@ namespace yam
  *    Type traits of form "has_x" return if grid information can be deduced (checks if the corresponding "x_of" type trait compile)
  *       Checking these before using the "x_of" type traits gives better error messages 
  *
- * ---------------------------------------------------------------
+ * ===============================================================
  */
 
 /*
@@ -343,11 +343,62 @@ namespace yam
    inline constexpr bool has_shape_type_v = has_shape_type<A>::value;
 
 /*
- * ---------------------------------------------------------------
+ * ===============================================================
+ *
+ * Type traits related to deducing if multiple types are defined on compatible grids
+ *
+ * ===============================================================
+ */
+
+/*
+ * Return whether the types A and As... are defined over grids of the same number of dimensions
+ */
+   template<typename    A,
+            typename... As>
+      requires has_ndim_v<A>
+            && ((has_ndim_v<As>)&&...)
+   struct has_same_ndim : std::bool_constant<((ndim_of_v<A> == ndim_of_v<As>)&&...)> {};
+
+// helper variable template
+   template<typename    A,
+            typename... As>
+   inline constexpr bool has_same_ndim_v = has_same_ndim<A,As...>::value;
+
+/*
+ * Return whether the types A and As... are defined over grids of the type
+ */
+   template<typename    A,
+            typename... As>
+      requires has_grid_v<A>
+            && ((has_grid_v<As>)&&...)
+   struct has_same_grid : std::bool_constant<((grid_of_v<A> == grid_of_v<As>)&&...)> {};
+
+// helper variable template
+   template<typename    A,
+            typename... As>
+   inline constexpr bool has_same_grid_v = has_same_grid<A,As...>::value;
+
+/*
+ * Return whether the types A and As... are defined over grids with the same index
+ */
+   template<typename    A,
+            typename... As>
+      requires has_index_type_v<A>
+            && ((has_index_type_v<As>)&&...)
+   struct has_same_index_type : std::bool_constant<((std::is_same_v<index_type_of_t<A>,
+                                                                    index_type_of_t<As>>)&&...)> {};
+
+// helper variable template
+   template<typename    A,
+            typename... As>
+   inline constexpr bool has_same_index_type_v = has_same_index_type<A,As...>::value;
+
+/*
+ * ===============================================================
  *
  * Type traits related to deducing the element type of an indexable
  *
- * ---------------------------------------------------------------
+ * ===============================================================
  */
 
 /*
@@ -355,14 +406,14 @@ namespace yam
  */
    template<typename  A,
             ndim_t ndim,
-            grid_t grid>
+            grid_t grid= primal>
       requires cpp::invocable<A,index<ndim,grid>>
    struct element_type_with : cpp::type_identity<std::invoke_result_t<A,index<ndim,grid>>> {};
 
 // helper type template
    template<typename  A,
             ndim_t ndim,
-            grid_t grid>
+            grid_t grid= primal>
    using element_type_with_t = typename element_type_with<A,ndim,grid>::type;
 
 /*

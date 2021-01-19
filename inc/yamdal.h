@@ -23,18 +23,27 @@ namespace yam
 /*
  * declarations
  */
-   template<ndim_t NDIM, grid_t GT> struct index;
-   template<ndim_t NDIM, grid_t GT> struct shape;
+   template<ndim_t NDIM, grid_t GRID> struct index;
+   template<ndim_t NDIM, grid_t GRID> struct shape;
+
+/*
+ * ===============================================================
+ *
+ * yam::index
+ * type definition and associated functions and type aliases
+ *
+ * ===============================================================
+ */
 
 /*
  * a multi-dimensional index into a grid of ndim dimensions and grid_type type
  */
    template<ndim_t NDIM,
-            grid_t   GT= primal>
+            grid_t GRID= primal>
    struct index
   {
       static constexpr ndim_t ndim = NDIM;
-      static constexpr grid_t grid = GT;
+      static constexpr grid_t grid = GRID;
 
       using shape_type = shape<ndim,grid>;
 
@@ -44,72 +53,73 @@ namespace yam
       constexpr const idx_t& operator[]( const ndim_t i ) const { return idxs[i]; }
   };
 
-// comparisons
+/*
+ * index comparisons
+ *    Note that the less-than operator i0<i1 is intended to test whether the the set of indices [i0,i1) is not empty. This means that it does not provide an ordering over indices of dimension greater than 1, so cannot be used in sorting algorithms.
+ *    To see this, consider two 2D indices:
+ *       index2 i0{0,1};
+ *       index2 i1{1,0};
+ *    Neither index is smaller than the other, and they are not equal to each other. Hence they cannot be ordered (totally or partially).
+ *       assert( !(i0<i1) );  // passes
+ *       assert( !(i1<i0) );  // passes
+ *       assert( !(i1==i0) ); // passes
+ */
 
-   template<ndim_t NDIM,
-            grid_t   GT>
+   template<ndim_t ndim,
+            grid_t grid>
    [[nodiscard]]
-   constexpr bool operator==( const index<NDIM,GT>& lhs,
-                              const index<NDIM,GT>& rhs )
+   constexpr bool operator==( const index<ndim,grid>& lhs,
+                              const index<ndim,grid>& rhs )
   {
       bool eq=true;
-      for( ndim_t i=0; i<NDIM; ++i )
+      for( ndim_t i=0; i<ndim; ++i )
      {
          eq = eq and (lhs[i]==rhs[i]);
      }
       return eq;
   }
 
-   template<ndim_t NDIM,
-            grid_t   GT>
+   template<ndim_t ndim,
+            grid_t grid>
    [[nodiscard]]
-   constexpr bool operator!=( const index<NDIM,GT>& lhs,
-                              const index<NDIM,GT>& rhs )
+   constexpr bool operator!=( const index<ndim,grid>& lhs,
+                              const index<ndim,grid>& rhs )
   {
       return !(lhs==rhs);
   }
 
-   template<ndim_t NDIM,
-            grid_t   GT>
+   template<ndim_t ndim,
+            grid_t grid>
    [[nodiscard]]
-   constexpr bool operator<=( const index<NDIM,GT>& lhs,
-                              const index<NDIM,GT>& rhs )
+   constexpr bool operator<( const index<ndim,grid>& lhs,
+                             const index<ndim,grid>& rhs )
   {
-      bool le=true;
-      for( ndim_t i=0; i<NDIM; ++i )
+      bool lt=true;
+      for( ndim_t i=0; i<ndim; ++i )
      {
-         le = le and (lhs[i]<=rhs[i]);
+         lt = lt and (lhs[i]<rhs[i]);
      }
-      return le;
-  }
-
-   template<ndim_t NDIM,
-            grid_t   GT>
-   [[nodiscard]]
-   constexpr bool operator<( const index<NDIM,GT>& lhs,
-                             const index<NDIM,GT>& rhs )
-  {
-      return (lhs<=rhs) and (lhs!=rhs);
+      return lt;
   }
 
 // convenience typedefs
 
    // dimensions
-   template<grid_t GT>
-   using index1 = index<1,GT>;
+   template<grid_t grid= primal>
+   using index1 = index<1,grid>;
 
-   template<grid_t GT>
-   using index2 = index<2,GT>;
+   template<grid_t grid= primal>
+   using index2 = index<2,grid>;
 
-   template<grid_t GT>
-   using index3 = index<3,GT>;
+   template<grid_t grid= primal>
+   using index3 = index<3,grid>;
 
    // grid type
-   template<ndim_t NDIM>
-   using primal_index = index<NDIM,primal>;
+   template<ndim_t ndim>
+   using primal_index = index<ndim,primal>;
 
-   template<ndim_t NDIM>
-   using dual_index = index<NDIM,dual>;
+   template<ndim_t ndim>
+   using dual_index = index<ndim,dual>;
 
    // dimensions and grid type
    using primal_index1 = index<1,primal>;
@@ -121,16 +131,25 @@ namespace yam
    using   dual_index3 = index<3,dual>;
 
 /*
+ * ===============================================================
+ *
+ * yam::shape
+ * type definition and associated functions and type aliases
+ *
+ * ===============================================================
+ */
+
+/*
  * The shape of a multi-dimensional grid
  *    stores the extent of the grid in each dimension
  *    assumes each dimension starts at zero
  */
    template<ndim_t NDIM,
-            grid_t   GT= primal>
+            grid_t GRID= primal>
    struct shape
   {
       static constexpr ndim_t ndim = NDIM;
-      static constexpr grid_t grid = GT;
+      static constexpr grid_t grid = GRID;
 
       using index_type = index<ndim,grid>;
 
@@ -142,48 +161,48 @@ namespace yam
 
 // comparisons
 
-   template<ndim_t NDIM,
-            grid_t   GT>
+   template<ndim_t ndim,
+            grid_t grid>
    [[nodiscard]]
-   constexpr bool operator==( const shape<NDIM,GT>& lhs,
-                              const shape<NDIM,GT>& rhs )
+   constexpr bool operator==( const shape<ndim,grid>& lhs,
+                              const shape<ndim,grid>& rhs )
   {
       bool eq=true;
-      for( ndim_t i=0; i<NDIM; ++i )
+      for( ndim_t i=0; i<ndim; ++i )
      {
          eq = eq and (lhs[i]==rhs[i]);
      }
       return eq;
   }
 
-   template<ndim_t NDIM,
-            grid_t   GT>
+   template<ndim_t ndim,
+            grid_t   grid>
    [[nodiscard]]
-   constexpr bool operator!=( const shape<NDIM,GT>& lhs,
-                              const shape<NDIM,GT>& rhs )
+   constexpr bool operator!=( const shape<ndim,grid>& lhs,
+                              const shape<ndim,grid>& rhs )
   {
       return !(lhs==rhs);
   }
 
-   template<ndim_t NDIM,
-            grid_t   GT>
+   template<ndim_t ndim,
+            grid_t   grid>
    [[nodiscard]]
-   constexpr bool operator<=( const shape<NDIM,GT>& lhs,
-                              const shape<NDIM,GT>& rhs )
+   constexpr bool operator<=( const shape<ndim,grid>& lhs,
+                              const shape<ndim,grid>& rhs )
   {
       bool le=true;
-      for( ndim_t i=0; i<NDIM; ++i )
+      for( ndim_t i=0; i<ndim; ++i )
      {
          le = le and (lhs[i]<=rhs[i]);
      }
       return le;
   }
 
-   template<ndim_t NDIM,
-            grid_t   GT>
+   template<ndim_t ndim,
+            grid_t   grid>
    [[nodiscard]]
-   constexpr bool operator<( const shape<NDIM,GT>& lhs,
-                             const shape<NDIM,GT>& rhs )
+   constexpr bool operator<( const shape<ndim,grid>& lhs,
+                             const shape<ndim,grid>& rhs )
   {
       return (lhs<=rhs) and (lhs!=rhs);
   }
@@ -191,21 +210,21 @@ namespace yam
 // convenience typedefs
 
    // dimensions
-   template<grid_t GT>
-   using shape1 = shape<1,GT>;
+   template<grid_t grid= primal>
+   using shape1 = shape<1,grid>;
 
-   template<grid_t GT>
-   using shape2 = shape<2,GT>;
+   template<grid_t grid= primal>
+   using shape2 = shape<2,grid>;
 
-   template<grid_t GT>
-   using shape3 = shape<3,GT>;
+   template<grid_t grid= primal>
+   using shape3 = shape<3,grid>;
 
    // grid type
-   template<ndim_t NDIM>
-   using primal_shape = shape<NDIM,primal>;
+   template<ndim_t ndim>
+   using primal_shape = shape<ndim,primal>;
 
-   template<ndim_t NDIM>
-   using dual_shape = shape<NDIM,dual>;
+   template<ndim_t ndim>
+   using dual_shape = shape<ndim,dual>;
 
    // dimensions and grid type
    using primal_shape1 = shape<1,primal>;
@@ -217,44 +236,85 @@ namespace yam
    using   dual_shape3 = shape<3,dual>;
 
 /*
+ * ===============================================================
+ */
+
+/*
  * convert shapes from primal to dual grid (dual extent = primal extent - 1)
  */
-   template<ndim_t NDIM>
+   template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_primal( const primal_shape<NDIM>& pshape )
+   constexpr auto to_primal( const primal_shape<ndim>& pshape )
   {
       return pshape;
   }
 
-   template<ndim_t NDIM>
+   template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_primal( const dual_shape<NDIM>& dshape )
+   constexpr auto to_primal( const dual_shape<ndim>& dshape )
   {
-      primal_shape<NDIM> pshape{};
-      for( ndim_t i=0; i<NDIM; ++i )
+      primal_shape<ndim> pshape{};
+      for( ndim_t i=0; i<ndim; ++i )
      {
          pshape.extents[i] = dshape[i]+1;
      }
       return pshape;
   }
 
-   template<ndim_t NDIM>
+   template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_dual( const dual_shape<NDIM>& dshape )
+   constexpr auto to_dual( const dual_shape<ndim>& dshape )
   {
       return dshape;
   }
 
-   template<ndim_t NDIM>
+   template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_dual( const primal_shape<NDIM>& pshape )
+   constexpr auto to_dual( const primal_shape<ndim>& pshape )
   {
-      dual_shape<NDIM> dshape{};
-      for( ndim_t i=0; i<NDIM; ++i )
+      dual_shape<ndim> dshape{};
+      for( ndim_t i=0; i<ndim; ++i )
      {
          dshape.extents[i] = pshape[i]-1;
      }
       return dshape;
+  }
+
+/*
+ * calculation of number of elements
+ */
+// number of elements in a grid of a given shape
+   template<ndim_t ndim,
+            grid_t grid>
+   constexpr size_t num_of_elems( const shape<ndim,grid>& shape )
+  {
+      size_t num=1;
+      for( ndim_t i=0; i<ndim; ++i )
+     {
+         num*=shape[i];
+     }
+      return num;
+  }
+
+// number of elements in a grid range with given begin/max indices
+   template<ndim_t ndim,
+            grid_t grid>
+   constexpr size_t num_of_elems( const index<ndim,grid>& begin_index,
+                                  const index<ndim,grid>&   end_index )
+  {
+      if( begin_index < end_index )
+     {
+         size_t num=1;
+         for( ndim_t i=0; i<ndim; ++i )
+        {
+            num*=end_index[i]-begin_index[i];
+        }
+         return num;
+     }
+      else
+     {
+         return 0;
+     }
   }
 
 }
