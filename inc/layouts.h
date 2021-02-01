@@ -33,9 +33,11 @@ namespace yam
       constexpr explicit stride( const shape_type& sh )
      {
          strides[ndim-1]=1;
-         for( ndim_t i=ndim-2; i>=0; --i )
+         ndim_t i=ndim-2;
+         while( i!=0 )
         {
             strides[i] = strides[i+1]*sh[i+1];
+            --i;
         }
      }
 

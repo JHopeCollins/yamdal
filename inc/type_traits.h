@@ -3,9 +3,6 @@
 
 # include <yamdal.h>
 
-# include <cpp20/concepts.h>
-# include <cpp20/type_traits.h>
-
 # include <type_traits>
 
 namespace yam
@@ -78,7 +75,7 @@ namespace yam
 
    // true
    template<typename A>
-      requires requires(){ { A::ndim } -> ndim_t; }
+      requires requires(){ { A::ndim } -> std::same_as<const ndim_t>; }
    struct has_ndim_member<A> : std::true_type {};
 
 // helper variable template
@@ -94,7 +91,7 @@ namespace yam
 
    // true
    template<typename A>
-      requires requires(){ { A::grid } -> grid_t; }
+      requires requires(){ { A::grid } -> std::same_as<const grid_t>; }
    struct has_grid_member<A> : std::true_type {};
 
 // helper variable template
@@ -179,23 +176,23 @@ namespace yam
 // specialisations without helper member
    // 1D
    template<typename A>
-      requires !has_ndim_member_v<A>
-            && (   cpp::invocable<A,index<1,primal>>
-                || cpp::invocable<A,index<1,dual>> )
+      requires (!has_ndim_member_v<A>)
+            && (   std::invocable<A,index<1,primal>>
+                || std::invocable<A,index<1,dual>> )
    struct ndim_of<A> : ndim_constant<1> {};
 
    // 2D
    template<typename A>
-      requires !has_ndim_member_v<A>
-            && (   cpp::invocable<A,index<2,primal>>
-                || cpp::invocable<A,index<2,dual>> )
+      requires (!has_ndim_member_v<A>)
+            && (   std::invocable<A,index<2,primal>>
+                || std::invocable<A,index<2,dual>> )
    struct ndim_of<A> : ndim_constant<2> {};
 
    // 3D
    template<typename A>
-      requires !has_ndim_member_v<A>
-            && (   cpp::invocable<A,index<3,primal>>
-                || cpp::invocable<A,index<3,dual>> )
+      requires (!has_ndim_member_v<A>)
+            && (   std::invocable<A,index<3,primal>>
+                || std::invocable<A,index<3,dual>> )
    struct ndim_of<A> : ndim_constant<3> {};
 
 // helper variable template
@@ -209,7 +206,9 @@ namespace yam
    struct has_ndim : std::false_type {};
 
    template<typename A>
-      requires requires(){ { ndim_of<A>::value } -> ndim_t; }
+      requires requires(){ ndim_of_v<A>; }
+            && std::same_as<decltype(ndim_of_v<A>),
+                            const ndim_t>
    struct has_ndim<A> : std::true_type {};
 
 // helper variable template
@@ -232,18 +231,18 @@ namespace yam
 // specialisations without helper member
    // primal
    template<typename A>
-      requires !has_grid_member_v<A>
-            && (   cpp::invocable<A,index<1,primal>>
-                || cpp::invocable<A,index<2,primal>>
-                || cpp::invocable<A,index<3,primal>> )
+      requires (!has_grid_member_v<A>)
+            && (   std::invocable<A,index<1,primal>>
+                || std::invocable<A,index<2,primal>>
+                || std::invocable<A,index<3,primal>> )
    struct grid_of<A> : grid_constant<primal> {};
 
    // dual
    template<typename A>
-      requires !has_grid_member_v<A>
-            && (   cpp::invocable<A,index<1,dual>>
-                || cpp::invocable<A,index<2,dual>>
-                || cpp::invocable<A,index<3,dual>> )
+      requires (!has_grid_member_v<A>)
+            && (   std::invocable<A,index<1,dual>>
+                || std::invocable<A,index<2,dual>>
+                || std::invocable<A,index<3,dual>> )
    struct grid_of<A> : grid_constant<dual> {};
 
 // helper variable template
@@ -257,7 +256,9 @@ namespace yam
    struct has_grid : std::false_type {};
 
    template<typename A>
-      requires requires(){ { grid_of_v<A> } -> grid_t; }
+      requires requires(){ grid_of_v<A>; }
+            && std::same_as<decltype(grid_of_v<A>),
+                            const grid_t>
    struct has_grid<A> : std::true_type {};
 
 // helper variable template
@@ -275,14 +276,14 @@ namespace yam
 // specialisation with helper member
    template<typename A>
       requires has_index_type_member_v<A>
-   struct index_type_of<A> : cpp::type_identity<typename A::index_type> {};
+   struct index_type_of<A> : std::type_identity<typename A::index_type> {};
 
 // specialisation without helper member
    template<typename A>
-      requires !has_index_type_member_v<A>
+      requires (!has_index_type_member_v<A>)
             && has_ndim_v<A>
             && has_grid_v<A>
-   struct index_type_of<A> : cpp::type_identity<index<ndim_of_v<A>,
+   struct index_type_of<A> : std::type_identity<index<ndim_of_v<A>,
                                                       grid_of_v<A>>> {};
 
 // helper type template
@@ -297,6 +298,7 @@ namespace yam
 
    template<typename A>
       requires requires(){ typename index_type_of<A>::type; }
+            && is_index_type_v<typename index_type_of<A>::type>
    struct has_index_type<A> : std::true_type {};
 
 // helper variable template
@@ -314,14 +316,14 @@ namespace yam
 // specialisation with helper member
    template<typename A>
       requires has_shape_type_member_v<A>
-   struct shape_type_of<A> : cpp::type_identity<typename A::shape_type> {};
+   struct shape_type_of<A> : std::type_identity<typename A::shape_type> {};
 
 // specialisation without helper member
    template<typename A>
-      requires !has_shape_type_member_v<A>
+      requires (!has_shape_type_member_v<A>)
             && has_ndim_v<A>
             && has_grid_v<A>
-   struct shape_type_of<A> : cpp::type_identity<shape<ndim_of_v<A>,
+   struct shape_type_of<A> : std::type_identity<shape<ndim_of_v<A>,
                                                       grid_of_v<A>>> {};
 
 // helper type template
@@ -336,6 +338,7 @@ namespace yam
 
    template<typename A>
       requires requires(){ typename shape_type_of<A>::type; }
+            && is_shape_type_v<typename shape_type_of<A>::type>
    struct has_shape_type<A> : std::true_type {};
 
 // helper variable template
@@ -385,8 +388,8 @@ namespace yam
             typename... As>
       requires has_index_type_v<A>
             && ((has_index_type_v<As>)&&...)
-   struct has_same_index_type : std::bool_constant<((std::is_same_v<index_type_of_t<A>,
-                                                                    index_type_of_t<As>>)&&...)> {};
+   struct has_same_index_type : std::bool_constant<((std::same_as<index_type_of_t<A>,
+                                                                  index_type_of_t<As>>)&&...)> {};
 
 // helper variable template
    template<typename    A,
@@ -407,8 +410,8 @@ namespace yam
    template<typename  A,
             ndim_t ndim,
             grid_t grid= primal>
-      requires cpp::invocable<A,index<ndim,grid>>
-   struct element_type_with : cpp::type_identity<std::invoke_result_t<A,index<ndim,grid>>> {};
+      requires std::invocable<A,index<ndim,grid>>
+   struct element_type_with : std::type_identity<std::invoke_result_t<A,index<ndim,grid>>> {};
 
 // helper type template
    template<typename  A,
@@ -422,8 +425,8 @@ namespace yam
  */
    template<typename A>
       requires has_index_type_v<A>
-            && cpp::invocable<A,index_type_of_t<A>>
-   struct element_type_of : cpp::type_identity<std::invoke_result_t<A,index_type_of_t<A>>> {};
+            && std::invocable<A,index_type_of_t<A>>
+   struct element_type_of : std::type_identity<std::invoke_result_t<A,index_type_of_t<A>>> {};
 
    template<typename A>
    using element_type_of_t = typename element_type_of<A>::type;

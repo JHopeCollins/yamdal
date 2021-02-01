@@ -4,10 +4,20 @@
 # include <yamdal.h>
 # include <type_traits.h>
 
-# include <cpp20/concepts.h>
-
 namespace yam
 {
+/*
+ * Assignable concept until can find out why std::assignable_from isn't working for constraints on yam::assign algorithm. 
+ */
+// template<typename LHS, typename RHS>
+// concept assignable_from =
+//    std::is_lvalue_reference_v<LHS>
+// && std::is_assignable_v<LHS,RHS>
+// && requires( LHS lhs, RHS&& rhs )
+//   {
+//       { lhs = std::forward<RHS>(rhs) } -> LHS;
+//   };
+
 /*
  * ===============================================================
  *
@@ -22,8 +32,8 @@ namespace yam
    template<typename  A,
             ndim_t ndim,
             grid_t grid= primal>
-   concept bool indexable_with =
-      cpp::invocable<A,index<ndim,grid>>;
+   concept indexable_with =
+      std::invocable<A,index<ndim,grid>>;
 
 /*
  * The indexable_with_r concept specifies that a type A is callable with a single argument of type index<ndim,grid> using the function template std::invoke, and has a return type that is convertible to R.
@@ -32,9 +42,9 @@ namespace yam
             typename  R,
             ndim_t ndim,
             grid_t grid= primal>
-   concept bool indexable_with_r =
-      cpp::invocable<A,index<ndim,grid>>
-   && cpp::convertible_to<std::invoke_result_t<A,index<ndim,grid>>,R>;
+   concept indexable_with_r =
+      std::invocable<A,index<ndim,grid>>
+   && std::convertible_to<std::invoke_result_t<A,index<ndim,grid>>,R>;
 
 /*
  * Specialisations for specified dimension
@@ -42,37 +52,37 @@ namespace yam
 // 1D
    template<typename  A,
             grid_t grid>
-   concept bool indexable1_with =
+   concept indexable1_with =
       indexable_with<A,1,grid>;
 
    template<typename  A,
             typename  R,
             grid_t grid>
-   concept bool indexable1_with_r =
+   concept indexable1_with_r =
       indexable_with_r<A,R,1,grid>;
 
 // 2D
    template<typename  A,
             grid_t grid>
-   concept bool indexable2_with =
+   concept indexable2_with =
       indexable_with<A,2,grid>;
 
    template<typename  A,
             typename  R,
             grid_t grid>
-   concept bool indexable2_with_r =
+   concept indexable2_with_r =
       indexable_with_r<A,R,2,grid>;
 
 // 3D
    template<typename  A,
             grid_t grid>
-   concept bool indexable3_with =
+   concept indexable3_with =
       indexable_with<A,3,grid>;
 
    template<typename  A,
             typename  R,
             grid_t grid>
-   concept bool indexable3_with_r =
+   concept indexable3_with_r =
       indexable_with_r<A,R,3,grid>;
 
 /*
@@ -81,25 +91,25 @@ namespace yam
 // primal grid
    template<typename  A,
             ndim_t ndim>
-   concept bool primal_indexable_with =
+   concept primal_indexable_with =
       indexable_with<A,ndim,primal>;
 
    template<typename  A,
             typename  R,
             ndim_t ndim>
-   concept bool primal_indexable_with_r =
+   concept primal_indexable_with_r =
       indexable_with_r<A,R,ndim,primal>;
 
 // dual grid
    template<typename  A,
             ndim_t ndim>
-   concept bool dual_indexable_with =
+   concept dual_indexable_with =
       indexable_with<A,ndim,dual>;
 
    template<typename  A,
             typename  R,
             ndim_t ndim>
-   concept bool dual_indexable_with_r =
+   concept dual_indexable_with_r =
       indexable_with_r<A,R,ndim,dual>;
 
 /*
@@ -114,7 +124,7 @@ namespace yam
  * The indexable concept specifies that a type A is callable with a single argument of type index<ndim,grid> (with unspecified ndim and grid) using the function template std::invoke.
  */
    template<typename A>
-   concept bool indexable =
+   concept indexable =
       indexable_with<A,1,primal>
    || indexable_with<A,2,primal>
    || indexable_with<A,3,primal>
@@ -127,7 +137,7 @@ namespace yam
  */
    template<typename A,
             typename R>
-   concept bool indexable_r =
+   concept indexable_r =
       indexable_with_r<A,R,1,primal>
    || indexable_with_r<A,R,2,primal>
    || indexable_with_r<A,R,3,primal>
@@ -140,37 +150,37 @@ namespace yam
  */
 // 1D
    template<typename A>
-   concept bool indexable1 =
+   concept indexable1 =
       indexable_with<A,1,primal>
    || indexable_with<A,1,dual>;
 
    template<typename A,
             typename R>
-   concept bool indexable1_r =
+   concept indexable1_r =
       indexable_with_r<A,R,1,primal>
    || indexable_with_r<A,R,1,dual>;
 
 // 2D
    template<typename A>
-   concept bool indexable2 =
+   concept indexable2 =
       indexable_with<A,2,primal>
    || indexable_with<A,2,dual>;
 
    template<typename A,
             typename R>
-   concept bool indexable2_r =
+   concept indexable2_r =
       indexable_with_r<A,R,2,primal>
    || indexable_with_r<A,R,2,dual>;
 
 // 3D
    template<typename A>
-   concept bool indexable3 =
+   concept indexable3 =
       indexable_with<A,3,primal>
    || indexable_with<A,3,dual>;
 
    template<typename A,
             typename R>
-   concept bool indexable3_r =
+   concept indexable3_r =
       indexable_with_r<A,R,3,primal>
    || indexable_with_r<A,R,3,dual>;
 
@@ -179,28 +189,28 @@ namespace yam
  */
 // primal grid
    template<typename A>
-   concept bool primal_indexable =
+   concept primal_indexable =
       indexable_with<A,1,primal>
    || indexable_with<A,2,primal>
    || indexable_with<A,3,primal>;
 
    template<typename A,
             typename R>
-   concept bool primal_indexable_r =
+   concept primal_indexable_r =
       indexable_with_r<A,R,1,primal>
    || indexable_with_r<A,R,2,primal>
    || indexable_with_r<A,R,3,primal>;
 
 // dual grid
    template<typename A>
-   concept bool dual_indexable =
+   concept dual_indexable =
       indexable_with<A,1,dual>
    || indexable_with<A,2,dual>
    || indexable_with<A,3,dual>;
 
    template<typename A,
             typename R>
-   concept bool dual_indexable_r =
+   concept dual_indexable_r =
       indexable_with_r<A,R,1,dual>
    || indexable_with_r<A,R,2,dual>
    || indexable_with_r<A,R,3,dual>;
@@ -211,63 +221,63 @@ namespace yam
 // primal grid
 // 1D
    template<typename A>
-   concept bool primal_indexable1 =
+   concept primal_indexable1 =
       indexable_with<A,1,primal>;
 
    template<typename A,
             typename R>
-   concept bool primal_indexable1_r =
+   concept primal_indexable1_r =
       indexable_with_r<A,R,1,primal>;
 
 // 2D
    template<typename A>
-   concept bool primal_indexable2 =
+   concept primal_indexable2 =
       indexable_with<A,2,primal>;
 
    template<typename A,
             typename R>
-   concept bool primal_indexable2_r =
+   concept primal_indexable2_r =
       indexable_with_r<A,R,2,primal>;
 
 // 3D
    template<typename A>
-   concept bool primal_indexable3 =
+   concept primal_indexable3 =
       indexable_with<A,3,primal>;
 
    template<typename A,
             typename R>
-   concept bool primal_indexable3_r =
+   concept primal_indexable3_r =
       indexable_with_r<A,R,3,primal>;
 
 // dual grid
 // 1D
    template<typename A>
-   concept bool dual_indexable1 =
+   concept dual_indexable1 =
       indexable_with<A,1,dual>;
 
    template<typename A,
             typename R>
-   concept bool dual_indexable1_r =
+   concept dual_indexable1_r =
       indexable_with_r<A,R,1,dual>;
 
 // 2D
    template<typename A>
-   concept bool dual_indexable2 =
+   concept dual_indexable2 =
       indexable_with<A,2,dual>;
 
    template<typename A,
             typename R>
-   concept bool dual_indexable2_r =
+   concept dual_indexable2_r =
       indexable_with_r<A,R,2,dual>;
 
 // 3D
    template<typename A>
-   concept bool dual_indexable3 =
+   concept dual_indexable3 =
       indexable_with<A,3,dual>;
 
    template<typename A,
             typename R>
-   concept bool dual_indexable3_r =
+   concept dual_indexable3_r =
       indexable_with_r<A,R,3,dual>;
 
 }

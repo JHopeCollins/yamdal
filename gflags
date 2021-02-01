@@ -1,1 +1,2 @@
--I./inc -Wall -Wextra -Wpedantic -std=c++2a -fconcepts -fno-exceptions
+-I./inc -Wall -Wextra -Wpedantic -std=c++20 -fno-exceptions -O3
+-I./inc -Wall -Wextra -Wpedantic -std=c++20 -fno-exceptions -ggdb3 -D_GLIBCXX_DEBUG -fsanitize=address,undefined -fno-omit-frame-pointer
