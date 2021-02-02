@@ -21,7 +21,6 @@ namespace yam
       static constexpr grid_t grid = GRID;
 
       using index_type = index<ndim,grid>;
-      using shape_type = shape<ndim,grid>;
 
       std::array<idx_t,ndim> strides;
 
@@ -29,18 +28,22 @@ namespace yam
       stride( const stride&  ) = default;
       stride(       stride&& ) = default;
 
-   // construct strides from a grid shape
-      constexpr explicit stride( const shape_type& sh )
+   // construct strides from a grid index_range
+      constexpr explicit stride( const index_range<ndim,grid>& irng )
      {
          strides[ndim-1]=1;
          ndim_t i=ndim-2;
          while( i!=0 )
         {
-            strides[i] = strides[i+1]*sh[i+1];
+            strides[i] = strides[i+1]*irng[i+1];
             --i;
         }
      }
 
+      [[nodiscard]]
+      constexpr idx_t& operator[]( const ndim_t i ) { return strides[i]; }
+
+      [[nodiscard]]
       constexpr const idx_t& operator[]( const ndim_t i ) const { return strides[i]; }
 
       stride& operator=( const stride&  ) = default;
