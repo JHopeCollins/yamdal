@@ -286,7 +286,7 @@ namespace yam
 // number of elements in a grid of a given shape
    template<ndim_t ndim,
             grid_t grid>
-   constexpr size_t num_of_elems( const shape<ndim,grid>& shape )
+   constexpr size_t num_elems( const shape<ndim,grid>& shape )
   {
       size_t num=1;
       for( ndim_t i=0; i<ndim; ++i )
@@ -296,25 +296,26 @@ namespace yam
       return num;
   }
 
-// number of elements in a grid range with given begin/max indices
+// number of elements in a grid range with given begin/end indices
    template<ndim_t ndim,
             grid_t grid>
-   constexpr size_t num_of_elems( const index<ndim,grid>& begin_index,
-                                  const index<ndim,grid>&   end_index )
+   constexpr size_t num_elems( const index<ndim,grid>& begin_index,
+                               const index<ndim,grid>&   end_index )
   {
-      if( begin_index < end_index )
+      size_t num=1;
+      for( ndim_t i=0; i<ndim; ++i )
      {
-         size_t num=1;
-         for( ndim_t i=0; i<ndim; ++i )
+         if( end_index[i] > begin_index[i] )
         {
             num*=end_index[i]-begin_index[i];
         }
-         return num;
+         else
+        {
+            num = 0;
+            break;
+        }
      }
-      else
-     {
-         return 0;
-     }
+      return num;
   }
 
 }

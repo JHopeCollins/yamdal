@@ -36,7 +36,7 @@ namespace yam
                                 DST&  dst,
                           const SRC&  src )
   {
-      if( !(begin_index < end_index) ){ return; }
+      if( num_elems( begin_index, end_index ) == 0 ){ return; }
 
       for( idx_t i=begin_index[0]; i<end_index[0]; ++i )
      {
@@ -60,7 +60,7 @@ namespace yam
                                 DST&  dst,
                           const SRC&  src )
   {
-      if( !(begin_index < end_index) ){ return; }
+      if( num_elems( begin_index, end_index ) == 0 ){ return; }
 
       for( idx_t i=begin_index[0]; i<end_index[0]; ++i )
      {
@@ -86,7 +86,7 @@ namespace yam
                                 DST&  dst,
                           const SRC&  src )
   {
-      if( !(begin_index < end_index) ){ return; }
+      if( num_elems( begin_index, end_index ) == 0 ){ return; }
 
       for( idx_t i=begin_index[0]; i<end_index[0]; ++i )
      {
@@ -122,7 +122,7 @@ namespace yam
                                 DST&  dst,
                           const SRC&  src )
   {
-      if( !(begin_index < end_index) ){ return; }
+      if( num_elems( begin_index, end_index ) == 0 ){ return; }
 
    # pragma omp parallel for
       for( idx_t i=begin_index[0]; i<end_index[0]; ++i )
@@ -147,7 +147,7 @@ namespace yam
                                 DST&  dst,
                           const SRC&  src )
   {
-      if( !(begin_index < end_index) ){ return; }
+      if( num_elems( begin_index, end_index ) == 0 ){ return; }
 
    # pragma omp parallel for
       for( idx_t i=begin_index[0]; i<end_index[0]; ++i )
@@ -175,7 +175,7 @@ namespace yam
                                 DST&  dst,
                           const SRC&  src )
   {
-      if( !(begin_index < end_index) ){ return; }
+      if( num_elems( begin_index, end_index ) == 0 ){ return; }
 
    # pragma omp parallel for
       for( idx_t i=begin_index[0]; i<end_index[0]; ++i )
