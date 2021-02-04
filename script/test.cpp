@@ -64,28 +64,49 @@
       constexpr yam::index    begin_index{0,0};
       constexpr yam::index2<> end_index{ni,nj};
 
-      std::cout << "before:\n";
-      for( size_t i=0; i<ni; ++i )
-     {
-         for( size_t j=0; j<nj; ++j )
+      const auto print_2d_array =
+         []<yam::indexable2 Arr>
+         ( const Arr& arr,
+           const yam::index_type_of_t<Arr> bidx,
+           const yam::index_type_of_t<Arr> eidx ) -> void
         {
-            std::cout << arr2({i,j}) << " ";
-        }
-         std::cout << "\n";
-     }
+            for( size_t i=bidx[0]; i<eidx[0]; ++i )
+           {
+               for( size_t j=bidx[1]; j<eidx[1]; ++j )
+              {
+                  std::cout << arr({i,j}) << " ";
+              }
+               std::cout << "\n";
+           }
+        };
+
+      std::cout << "before:\n";
+      print_2d_array( arr2, begin_index, end_index );
 
       yam::assign( begin_index, end_index,
                    arr2, flat2 );
 
       std::cout << "after:\n";
-      for( size_t i=0; i<ni; ++i )
-     {
-         for( size_t j=0; j<nj; ++j )
+      print_2d_array( arr2, begin_index, end_index );
+
+   // new matrix view
+      matrix2_t<int,ni,nj> m3{};
+      yam::indexable2_r<int&> auto arr3 =
+         [&m3]( const yam::index2<>& ij ) -> int&
         {
-            std::cout << arr2({i,j}) << " ";
-        }
-         std::cout << "\n";
-     }
+            const auto i = ij[0];
+            const auto j = ij[1];
+            return m3[i][j];
+        };
+
+      yam::transform( yam::execution::seq,
+                      begin_index, end_index,
+                      arr3,
+                      []( int i ){ return i+1; },
+                      arr2 );
+   
+      std::cout << "plus 1:\n";
+      print_2d_array( arr3, begin_index, end_index );
 
       return 0;
   }

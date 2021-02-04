@@ -7,18 +7,6 @@
 namespace yam
 {
 /*
- * Assignable concept until can find out why std::assignable_from isn't working for constraints on yam::assign algorithm. 
- */
-// template<typename LHS, typename RHS>
-// concept assignable_from =
-//    std::is_lvalue_reference_v<LHS>
-// && std::is_assignable_v<LHS,RHS>
-// && requires( LHS lhs, RHS&& rhs )
-//   {
-//       { lhs = std::forward<RHS>(rhs) } -> LHS;
-//   };
-
-/*
  * ===============================================================
  *
  * Indexable concepts with fully specified index
@@ -279,5 +267,50 @@ namespace yam
             typename R>
    concept dual_indexable3_r =
       indexable_with_r<A,R,3,dual>;
+
+/*
+ * ===============================================================
+ *
+ * Compatability concepts for different types with similar/same grids
+ *
+ * ===============================================================
+ */
+
+/*
+ * do multiple indexables have compatible grids? ie same gridtype and dimension
+ */
+   template<typename    A,
+            typename... As>
+   concept compatible_grids =
+      indexable<A> && (indexable<As>&&...)
+   && (std::same_as<index_type_of_t<A>,
+                    index_type_of_t<As>>&&...);
+
+/*
+ * ===============================================================
+ *
+ * Compatability concepts for callables over indexables
+ *
+ * ===============================================================
+ */
+
+/*
+ * the function F can be called with arguments As and the return type is not void
+ */
+   template<typename     F,
+            typename... As>
+   concept transformation =
+      std::invocable<F,As...>
+   && !std::is_void_v<std::invoke_result_t<F,As...>>;
+
+/*
+ * the function F can be called with arguments As and the return type is assignable to type R
+ */
+   template<typename     R,
+            typename     F,
+            typename... As>
+   concept transformation_r =
+      std::invocable<F,As...>
+   && std::assignable_from<R,std::invoke_result_t<F,As...>>;
 
 }

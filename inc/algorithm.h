@@ -27,7 +27,7 @@ namespace yam
  */
    template<indexable1 DST,
             indexable1 SRC>
-      requires has_same_grid_v<SRC,DST>
+      requires compatible_grids<SRC,DST>
             && std::assignable_from<element_type_of_t<DST>,
                                     element_type_of_t<SRC>>
    constexpr void assign(       execution::serial_policy,
@@ -51,7 +51,7 @@ namespace yam
  */
    template<indexable2 DST,
             indexable2 SRC>
-      requires has_same_grid_v<SRC,DST>
+      requires compatible_grids<SRC,DST>
             && std::assignable_from<element_type_of_t<DST>,
                                     element_type_of_t<SRC>>
    constexpr void assign(       execution::serial_policy,
@@ -77,7 +77,7 @@ namespace yam
  * 3D grid
  */
    template<indexable3 DST, indexable3 SRC>
-      requires has_same_grid_v<SRC,DST>
+      requires compatible_grids<SRC,DST>
             && std::assignable_from<element_type_of_t<DST>,
                                     element_type_of_t<SRC>>
    constexpr void assign(       execution::serial_policy,
@@ -113,7 +113,7 @@ namespace yam
  */
    template<indexable1 DST,
             indexable1 SRC>
-      requires has_same_grid_v<SRC,DST>
+      requires compatible_grids<SRC,DST>
             && std::assignable_from<element_type_of_t<DST>,
                                     element_type_of_t<SRC>>
    constexpr void assign(       execution::openmp_policy,
@@ -138,7 +138,7 @@ namespace yam
  */
    template<indexable2 DST,
             indexable2 SRC>
-      requires has_same_grid_v<SRC,DST>
+      requires compatible_grids<SRC,DST>
             && std::assignable_from<element_type_of_t<DST>,
                                     element_type_of_t<SRC>>
    constexpr void assign(       execution::openmp_policy,
@@ -166,7 +166,7 @@ namespace yam
  */
    template<indexable3 DST,
             indexable3 SRC>
-      requires has_same_grid_v<SRC,DST>
+      requires compatible_grids<SRC,DST>
             && std::assignable_from<element_type_of_t<DST>,
                                     element_type_of_t<SRC>>
    constexpr void assign(       execution::openmp_policy,
@@ -203,8 +203,7 @@ namespace yam
  */
    template<indexable DST,
             indexable SRC>
-      requires has_same_ndim_v<SRC,DST>
-            && has_same_grid_v<SRC,DST>
+      requires compatible_grids<SRC,DST>
             && std::assignable_from<element_type_of_t<DST>,
                                     element_type_of_t<SRC>>
    constexpr void assign( const index_type_of_t<SRC>& begin_index,
@@ -216,6 +215,89 @@ namespace yam
               begin_index, end_index,
               dst, src );
       return;
+  }
+
+
+/*
+ * ===============================================================
+ *
+ * yam::transform
+ *    yam::transform applies the given function TFunc to a variadic pack of indexables
+ *    Two overload types are available
+ *       1) returns an indexable lambda that lazily evaluates the transform when called with an index
+ *       2) eagerly evaluate the transformation and assign result into given indexable
+ *
+ * ===============================================================
+ */
+
+/*
+ * lazy transform
+ */
+   template<typename    TFunc,
+            indexable    Src0,
+            indexable... Srcs>
+      requires compatible_grids<Src0,Srcs...>
+            && transformation<TFunc,
+                              element_type_of_t<Src0>,
+                              element_type_of_t<Srcs>...>
+   [[nodiscard]]
+   constexpr auto transform( TFunc  tfunc,
+                             Src0    src0,
+                             Srcs... srcs )
+  {
+      using index_type = common_index_type_t<Src0,Srcs...>;
+
+      return [=]( index_type idx )
+     {
+         return std::invoke( tfunc, src0(idx), srcs(idx)... );
+     };
+  }
+
+/*
+ * eager transform
+ */
+   template<typename          Index,
+            typename          TFunc,
+            indexable           Dst,
+            indexable...       Srcs>
+      requires compatible_grids<Dst,Srcs...>
+            && std::same_as<Index,index_type_of_t<Dst>>
+            && transformation_r<element_type_of_t<Dst>,
+                                TFunc,
+                                element_type_of_t<Srcs>...>
+   constexpr void transform(       execution_policy auto policy,
+                             const Index            begin_index,
+                             const Index              end_index,
+                                   Dst&                     dst,
+                                   TFunc                  tfunc,
+                             const Srcs&...                srcs )
+  {
+      assign( policy,
+              begin_index, end_index,
+              dst, transform( tfunc, yam::view(srcs)... ) );
+  }
+
+/*
+ * Convenience overload for eager serial execution
+ */
+   template<typename    Index,
+            typename    TFunc,
+            indexable     Dst,
+            indexable... Srcs>
+      requires compatible_grids<Dst,Srcs...>
+            && std::same_as<Index,index_type_of_t<Dst>>
+            && transformation_r<element_type_of_t<Dst>,
+                                TFunc,
+                                element_type_of_t<Srcs>...>
+   constexpr void transform( Index   begin_index,
+                             Index     end_index,
+                             Dst&            dst,
+                             TFunc         tfunc,
+                             Srcs...        srcs )
+  {
+      transform( execution::seq,
+                 begin_index, end_index,
+                 dst, tfunc, srcs... );
   }
 
 }

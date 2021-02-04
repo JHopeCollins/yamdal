@@ -58,7 +58,8 @@ namespace yam
 
 // deduction guide
    template<std::integral... Is>
-   index( Is... ) -> index<sizeof...(Is),primal>;
+   index( Is... )
+      -> index<sizeof...(Is),primal>;
 
 /*
  * index comparisons
@@ -256,14 +257,16 @@ namespace yam
  */
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_primal( const primal_index<ndim>& pidx ) -> primal_index<ndim>
+   constexpr auto to_primal( const primal_index<ndim>& pidx )
+      -> primal_index<ndim>
   {
       return pidx;
   }
 
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_primal( const dual_index<ndim>& didx ) -> primal_index<ndim>
+   constexpr auto to_primal( const dual_index<ndim>& didx )
+      -> primal_index<ndim>
   {
       primal_index<ndim> pidx;
       for( ndim_t i=0; i<ndim; ++i ){ pidx[i]=didx[i]; }
@@ -272,14 +275,16 @@ namespace yam
 
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_dual( const dual_index<ndim>& didx ) -> dual_index<ndim>
+   constexpr auto to_dual( const dual_index<ndim>& didx )
+      -> dual_index<ndim>
   {
       return didx;
   }
 
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_dual( const primal_index<ndim>& pidx ) -> dual_index<ndim>
+   constexpr auto to_dual( const primal_index<ndim>& pidx )
+      -> dual_index<ndim>
   {
       dual_index<ndim> didx;
       for( ndim_t i=0; i<ndim; ++i ){ didx[i]=pidx[i]; }
@@ -291,14 +296,16 @@ namespace yam
  */
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_primal( const primal_index_range<ndim>& prng ) -> primal_index_range<ndim>
+   constexpr auto to_primal( const primal_index_range<ndim>& prng )
+      -> primal_index_range<ndim>
   {
       return prng;
   }
 
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_primal( const dual_index_range<ndim>& drng ) -> primal_index_range<ndim>
+   constexpr auto to_primal( const dual_index_range<ndim>& drng )
+      -> primal_index_range<ndim>
   {
       primal_index_range<ndim> prng(to_primal(begin_index(drng)),
                                     to_primal(  end_index(drng)));
@@ -311,14 +318,16 @@ namespace yam
 
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_dual( const dual_index_range<ndim>& drng ) -> dual_index_range<ndim>
+   constexpr auto to_dual( const dual_index_range<ndim>& drng )
+      -> dual_index_range<ndim>
   {
       return drng;
   }
 
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_dual( const primal_index_range<ndim>& prng ) -> dual_index_range<ndim>
+   constexpr auto to_dual( const primal_index_range<ndim>& prng )
+      -> dual_index_range<ndim>
   {
       dual_index_range<ndim> drng(to_dual(begin_index(prng)),
                                   to_dual(  end_index(prng)));

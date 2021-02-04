@@ -306,6 +306,27 @@ namespace yam
    inline constexpr bool has_index_type_v = has_index_type<A>::value;
 
 /*
+ * return the index type that can be used for all types in a parameter pack
+ *    undefined if any of the types are not indexable, or if any types are indexable with multiple index types
+ */
+   template<typename... As>
+   struct common_index_type;
+
+   template<typename... As>
+      requires (has_index_type_v<As>&&...)
+            && (std::same_as<primal_index1,index_type_of_t<As>>&&...)
+   struct common_index_type<As...> : std::type_identity<primal_index1> {};
+
+   template<typename... As>
+      requires (has_index_type_v<As>&&...)
+            && (std::same_as<primal_index2,index_type_of_t<As>>&&...)
+   struct common_index_type<As...> : std::type_identity<primal_index2> {};
+
+// helper type template
+   template<typename... As>
+   using common_index_type_t = typename common_index_type<As...>::type;
+
+/*
  * Returns the index_range type of the grid over which the indexable A is defined
  * The behaviour of a program for which A is not indexable, or is indexable with multiple index_range types is undefined.
  */
