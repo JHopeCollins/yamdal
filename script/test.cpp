@@ -1,9 +1,9 @@
 
-# include <algorithm.h>
-# include <execution.h>
-# include <concepts.h>
-# include <type_traits.h>
-# include <layouts.h>
+//# include <algorithm.h>
+//# include <execution.h>
+//# include <concepts.h>
+//# include <type_traits.h>
+//# include <layouts.h>
 # include <yamdal.h>
 
 # include <iostream>
@@ -18,11 +18,12 @@
             size_t  N1>
    using matrix2_t = std::array<std::array<T,N1>,N0>;
 
-   template<typename T>
-   void foo() requires yam::has_ndim_v<T> { }
+// template<typename T>
+// void foo() requires yam::has_ndim_v<T> { }
 
    int main()
   {
+/*
       foo<yam::index2<>>();
 
       constexpr yam::primal_index2 ip2{7,15};
@@ -122,5 +123,6 @@
 
       std::cout << "sum of plus1: " << sum << "\n";
 
+*/
       return 0;
   }

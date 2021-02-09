@@ -3,6 +3,7 @@
 
 # include <yamdal.h>
 
+# include <concepts>
 # include <type_traits>
 
 namespace yam

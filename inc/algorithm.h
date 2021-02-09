@@ -1,6 +1,7 @@
 
 # pragma once
 
+# include <views.h>
 # include <execution.h>
 # include <concepts.h>
 # include <yamdal.h>
@@ -205,7 +206,7 @@ namespace yam
    [[nodiscard]]
    constexpr auto transform( TransformFunc&& transform_func,
                              Source0&&              source0,
-                             Sources&&...           sources )
+                             Sources&&...           sources ) -> indexable auto
   {
       using index_type = common_index_type_t<Source0,Sources...>;
 
@@ -224,27 +225,27 @@ namespace yam
 /*
  * eager transform
  */
-   template<typename          TransformFunc,
-            indexable           Destination,
-            indexable...            Sources>
+   template<typename    TransformFunc,
+            indexable     Destination,
+            indexable...      Sources>
       requires same_grid_as<Destination,
                             Sources...>
             && transformation_r<TransformFunc,
                                 element_type_of_t<Destination>,
                                 element_type_of_t<Sources>...>
-   constexpr void transform(       execution_policy auto             policy,
+   constexpr void transform( const execution_policy auto             policy,
                              const index_type_of_t<Destination> begin_index,
                              const index_type_of_t<Destination>   end_index,
                                    Destination&                 destination,
                                    TransformFunc&&           transform_func,
                                    Sources&&...                     sources )
   {
+   // need to create a view (window) of each source to avoid copying entire array into lazy transform adaptor
       assign( policy,
               begin_index, end_index,
               destination,
               transform( std::forward<TransformFunc>(transform_func),
-                         std::forward<Sources>(sources)... ) );
-//                       window(std::forward<Sources>(sources))... ) );
+                         window(std::forward<Sources>(sources))... ) );
   }
 
 /*
@@ -358,11 +359,11 @@ namespace yam
  * ===============================================================
  */
 
-   template<typename TransformFunc,
-            typename    ReduceFunc,
-            typename    ReduceType,
-            indexable      Source0,
-            indexable...   Sources>
+   template<typename    TransformFunc,
+            typename       ReduceFunc,
+            typename       ReduceType,
+            indexable         Source0,
+            indexable...      Sources>
       requires same_grid_as<Source0,
                             Sources...>
             && transformation_reduction<TransformFunc,
@@ -385,20 +386,18 @@ namespace yam
                      std::forward<ReduceFunc>(reduce_func),
                      std::forward<ReduceType>(init),
                      transform( std::forward<TransformFunc>(transform_func),
-                                std::forward<Source0>(source0),
-                                std::forward<Sources>(sources)... ) );
-//                              window(std::forward<Source0>(source0)),
-//                              window(std::forward<Sources>(sources))... ) );
+                                window(std::forward<Source0>(source0)),
+                                window(std::forward<Sources>(sources))... ) );
   }
 
 /*
  * Convenience overload assumes serial evaluation
  */
-   template<typename TransformFunc,
-            typename    ReduceFunc,
-            typename    ReduceType,
-            indexable      Source0,
-            indexable...   Sources>
+   template<typename    TransformFunc,
+            typename       ReduceFunc,
+            typename       ReduceType,
+            indexable         Source0,
+            indexable...      Sources>
       requires same_grid_as<Source0,
                             Sources...>
             && transformation_reduction<TransformFunc,

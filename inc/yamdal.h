@@ -4,9 +4,11 @@
 # include <array>
 # include <concepts>
 # include <utility>
+# include <cstddef>
 
 namespace yam
 {
+
 /*
  * integer types used for number of dimensions and for indexing
  */
@@ -377,5 +379,6 @@ namespace yam
   {
       return num_elems(begin_index,end_index)==0;
   }
+
 }
 

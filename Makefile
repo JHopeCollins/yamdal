@@ -11,7 +11,8 @@ PROGRMDIR = progrm/#		executables
 CSOURCE =
 
 # main() function files
-CSCRIPT = test.cpp
+CSCRIPT = test.cpp \
+	test_views.cpp
 
 # compiler
 CCMP = g++-10
