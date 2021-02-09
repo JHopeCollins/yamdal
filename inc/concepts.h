@@ -277,11 +277,11 @@ namespace yam
  */
 
 /*
- * do multiple indexables have compatible grids? ie same gridtype and dimension
+ * do multiple indexables have the same grid? ie same gridtype and dimension
  */
    template<typename    A,
             typename... As>
-   concept compatible_grids =
+   concept same_grid_as =
       indexable<A> && (indexable<As>&&...)
    && (std::same_as<index_type_of_t<A>,
                     index_type_of_t<As>>&&...);
@@ -289,28 +289,64 @@ namespace yam
 /*
  * ===============================================================
  *
- * Compatability concepts for callables over indexables
+ * Compatability concepts for callables and indexables to be used with higher order functions
  *
  * ===============================================================
  */
 
 /*
- * the function F can be called with arguments As and the return type is not void
+ * Set of arguments for a (lazy) transform algorithm (destination range not yet specified)
+ *    The function TransformFunc can be called with arguments Arguments and the return type is not void
  */
-   template<typename     F,
-            typename... As>
+   template<typename   TransformFunc,
+            typename...    Arguments>
    concept transformation =
-      std::invocable<F,As...>
-   && !std::is_void_v<std::invoke_result_t<F,As...>>;
+      std::invocable<TransformFunc,
+                     Arguments...>
+   && !std::is_void_v<std::invoke_result_t<TransformFunc,
+                                           Arguments...>>;
 
 /*
- * the function F can be called with arguments As and the return type is assignable to type R
+ * Set of arguments for a transform algorithm
+ *    The function TransformFunc can be called with arguments Arguments and the return type is assignable to type Destination
  */
-   template<typename     R,
-            typename     F,
-            typename... As>
+   template<typename   TransformFunc,
+            typename     Destination,
+            typename...    Arguments>
    concept transformation_r =
-      std::invocable<F,As...>
-   && std::assignable_from<R,std::invoke_result_t<F,As...>>;
+      std::invocable<TransformFunc,
+                     Arguments...>
+   && std::assignable_from<Destination,
+                           std::invoke_result_t<TransformFunc,
+                                                Arguments...>>;
 
+/*
+ * Set of arguments for a reduce algorithm
+ */
+   template<typename ReduceFunc,
+            typename ReduceType,
+            typename SourceType>
+   concept reduction =
+      transformation_r<ReduceFunc,
+                       ReduceType&,
+                       ReduceType&&,
+                       const SourceType&>;
+
+/*
+ * Set of arguments for transform_reduce algorithm
+ */
+   template<typename TransformFunc,
+            typename    ReduceFunc,
+            typename    ReduceType,
+            typename       Source0,
+            typename...    Sources>
+   concept transformation_reduction =
+      transformation<TransformFunc,
+                     Source0,
+                     Sources...>
+   && reduction<ReduceFunc,
+                ReduceType,
+                std::invoke_result_t<TransformFunc,
+                                     Source0,
+                                     Sources...>>;
 }

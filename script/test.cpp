@@ -18,8 +18,13 @@
             size_t  N1>
    using matrix2_t = std::array<std::array<T,N1>,N0>;
 
+   template<typename T>
+   void foo() requires yam::has_ndim_v<T> { }
+
    int main()
   {
+      foo<yam::index2<>>();
+
       constexpr yam::primal_index2 ip2{7,15};
       constexpr yam::dual_index<2> id2{3,4};
 
@@ -80,18 +85,18 @@
            }
         };
 
-      std::cout << "before:\n";
-      print_2d_array( arr2, begin_index, end_index );
+//    std::cout << "before:\n";
+//    print_2d_array( arr2, begin_index, end_index );
 
       yam::assign( begin_index, end_index,
                    arr2, flat2 );
 
-      std::cout << "after:\n";
-      print_2d_array( arr2, begin_index, end_index );
+//    std::cout << "after:\n";
+//    print_2d_array( arr2, begin_index, end_index );
 
    // new matrix view
       matrix2_t<int,ni,nj> m3{};
-      yam::indexable2_r<int&> auto arr3 =
+      const yam::indexable2_r<int&> auto arr3 =
          [&m3]( const yam::index2<>& ij ) -> int&
         {
             const auto i = ij[0];
@@ -104,9 +109,18 @@
                       arr3,
                       []( int i ){ return i+1; },
                       arr2 );
-   
-      std::cout << "plus 1:\n";
+
+      std::cout << "eager plus 1:\n";
       print_2d_array( arr3, begin_index, end_index );
+
+      const auto sum =
+         yam::reduce( //yam::execution::seq,
+                      begin_index, end_index,
+                      std::plus<int>{},
+                      0,
+                      arr3 );
+
+      std::cout << "sum of plus1: " << sum << "\n";
 
       return 0;
   }

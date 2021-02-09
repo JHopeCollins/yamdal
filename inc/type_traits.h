@@ -75,7 +75,7 @@ namespace yam
 
    // true
    template<typename A>
-      requires requires(){ { A::ndim } -> std::same_as<const ndim_t>; }
+      requires requires(){ { A::ndim } -> std::same_as<const ndim_t&>; }
    struct has_ndim_member<A> : std::true_type {};
 
 // helper variable template
@@ -91,7 +91,7 @@ namespace yam
 
    // true
    template<typename A>
-      requires requires(){ { A::grid } -> std::same_as<const grid_t>; }
+      requires requires(){ { A::grid } -> std::same_as<const grid_t&>; }
    struct has_grid_member<A> : std::true_type {};
 
 // helper variable template

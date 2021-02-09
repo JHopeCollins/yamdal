@@ -68,8 +68,8 @@ namespace yam
    template<ndim_t ndim,
             grid_t grid>
    [[nodiscard]]
-   constexpr bool operator==( const index<ndim,grid>& lhs,
-                              const index<ndim,grid>& rhs )
+   constexpr bool operator==( const index<ndim,grid> lhs,
+                              const index<ndim,grid> rhs )
   {
       bool eq=true;
       for( ndim_t i=0; i<ndim; ++i )
@@ -82,8 +82,8 @@ namespace yam
    template<ndim_t ndim,
             grid_t grid>
    [[nodiscard]]
-   constexpr bool operator!=( const index<ndim,grid>& lhs,
-                              const index<ndim,grid>& rhs )
+   constexpr bool operator!=( const index<ndim,grid> lhs,
+                              const index<ndim,grid> rhs )
   {
       return !(lhs==rhs);
   }
@@ -145,11 +145,11 @@ namespace yam
       index_range( const index_range&  ) = default;
       index_range(       index_range&& ) = default;
 
-      constexpr explicit index_range( const index_type& end_idx )
+      constexpr explicit index_range( const index_type end_idx )
          : begin_index{0}, end_index(end_idx) {}
 
-      constexpr explicit index_range( const index_type& begin_idx,
-                                      const index_type&   end_idx )
+      constexpr explicit index_range( const index_type begin_idx,
+                                      const index_type   end_idx )
          : begin_index(begin_idx), end_index(end_idx) {}
 
       index_range& operator=( const index_range&  ) = default;
@@ -172,13 +172,13 @@ namespace yam
 // deduction guides
    template<ndim_t ndim,
             grid_t grid>
-   explicit index_range( const index<ndim,grid>& )
+   explicit index_range( const index<ndim,grid> )
       -> index_range<ndim,grid>;
 
    template<ndim_t ndim,
             grid_t grid>
-   explicit index_range( const index<ndim,grid>&,
-                         const index<ndim,grid>& )
+   explicit index_range( const index<ndim,grid>,
+                         const index<ndim,grid> )
       -> index_range<ndim,grid>;
 
 // access begin/end indices
@@ -257,7 +257,7 @@ namespace yam
  */
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_primal( const primal_index<ndim>& pidx )
+   constexpr auto to_primal( const primal_index<ndim> pidx )
       -> primal_index<ndim>
   {
       return pidx;
@@ -265,7 +265,7 @@ namespace yam
 
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_primal( const dual_index<ndim>& didx )
+   constexpr auto to_primal( const dual_index<ndim> didx )
       -> primal_index<ndim>
   {
       primal_index<ndim> pidx;
@@ -275,7 +275,7 @@ namespace yam
 
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_dual( const dual_index<ndim>& didx )
+   constexpr auto to_dual( const dual_index<ndim> didx )
       -> dual_index<ndim>
   {
       return didx;
@@ -283,7 +283,7 @@ namespace yam
 
    template<ndim_t ndim>
    [[nodiscard]]
-   constexpr auto to_dual( const primal_index<ndim>& pidx )
+   constexpr auto to_dual( const primal_index<ndim> pidx )
       -> dual_index<ndim>
   {
       dual_index<ndim> didx;
@@ -357,11 +357,25 @@ namespace yam
 // number of elements in a grid range with given begin/end indices
    template<ndim_t ndim,
             grid_t grid>
-   constexpr size_t num_elems( const index<ndim,grid>& begin_index,
-                               const index<ndim,grid>&   end_index )
+   constexpr size_t num_elems( const index<ndim,grid> begin_index,
+                               const index<ndim,grid>   end_index )
   {
       return num_elems( index_range(begin_index,end_index) );
   }
 
+   template<ndim_t ndim,
+            grid_t grid>
+   constexpr bool is_empty_range( const index_range<ndim,grid>& irng )
+  {
+      return num_elems(irng)==0;
+  }
+
+   template<ndim_t ndim,
+            grid_t grid>
+   constexpr bool is_empty_range( const index<ndim,grid> begin_index,
+                                  const index<ndim,grid>   end_index )
+  {
+      return num_elems(begin_index,end_index)==0;
+  }
 }
 

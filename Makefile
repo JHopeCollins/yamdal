@@ -17,15 +17,14 @@ CSCRIPT = test.cpp
 CCMP = g++-10
 
 # debug/optimisation flags
-#COPT = -ggdb3 -D_GLIBCXX_DEBUG -fsanitize=address,undefined -fno-omit-frame-pointer
-COPT = -O3# -ffast-math -DNDEBUG
+COPT = -ggdb3 -D_GLIBCXX_DEBUG -fsanitize=address,undefined -fno-omit-frame-pointer
+#COPT = -O3# -ffast-math -DNDEBUG
 
 # warnings
 CWARN = -Wall -Wextra -Wpedantic -Wshadow# -Wconversion
 
 # language specs
-#CSTD = -std=c++2a -fconcepts -fno-exceptions
-CSTD = -std=c++20 -fno-exceptions -fopenmp# -fconcepts-diagnostics-depth=2
+CSTD = -std=c++20 -fno-exceptions -fopenmp #-fconcepts-diagnostics-depth=2
 
 # external libraries eg lapack, blas
 LIBS =
