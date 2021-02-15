@@ -1,12 +1,13 @@
 
-//# include <algorithm.h>
-//# include <execution.h>
-//# include <concepts.h>
-//# include <type_traits.h>
-//# include <layouts.h>
+# include <iostream>
+
+# include <algorithm.h>
+# include <execution.h>
+# include <concepts.h>
+# include <type_traits.h>
+# include <layouts.h>
 # include <yamdal.h>
 
-# include <iostream>
 # include <array>
 
    template<typename T,
@@ -18,14 +19,9 @@
             size_t  N1>
    using matrix2_t = std::array<std::array<T,N1>,N0>;
 
-// template<typename T>
-// void foo() requires yam::has_ndim_v<T> { }
 
    int main()
   {
-/*
-      foo<yam::index2<>>();
-
       constexpr yam::primal_index2 ip2{7,15};
       constexpr yam::dual_index<2> id2{3,4};
 
@@ -105,6 +101,16 @@
             return m3[i][j];
         };
 
+      using idx_t = const yam::index<2>&;
+
+      static_assert( yam::has_ndim_member_v<idx_t> );
+      static_assert( yam::has_grid_member_v<idx_t> );
+
+      static_assert( yam::has_ndim_v<idx_t> );
+      static_assert( yam::has_grid_v<idx_t> );
+
+      static_assert( yam::has_index_type_member_v<idx_t> );
+
       yam::transform( yam::execution::seq,
                       begin_index, end_index,
                       arr3,
@@ -115,7 +121,7 @@
       print_2d_array( arr3, begin_index, end_index );
 
       const auto sum =
-         yam::reduce( //yam::execution::seq,
+         yam::reduce( yam::execution::seq,
                       begin_index, end_index,
                       std::plus<int>{},
                       0,
@@ -123,6 +129,5 @@
 
       std::cout << "sum of plus1: " << sum << "\n";
 
-*/
       return 0;
   }

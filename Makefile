@@ -16,6 +16,7 @@ CSCRIPT = test.cpp \
 
 # compiler
 CCMP = g++-10
+#CCMP = clang++-10
 
 # debug/optimisation flags
 COPT = -ggdb3 -D_GLIBCXX_DEBUG -fsanitize=address,undefined -fno-omit-frame-pointer

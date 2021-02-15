@@ -5,8 +5,6 @@
 # include <type_traits.h>
 # include <yamdal.h>
 
-# include <iostream>
-
 namespace yam
 {
 /*
@@ -26,7 +24,7 @@ namespace yam
 
 // overload for lvalue references - capture source by reference
    template<indexable I>
-   constexpr auto window( I& source ) -> view auto
+   constexpr view auto window( I& source )
   {
       using index_type  = index_type_of_t<I>;
       using return_type = element_type_of_t<I>;
@@ -38,7 +36,7 @@ namespace yam
 
 // overload for rvalue references - capture source by value
    template<indexable I>
-   constexpr auto window( I&& source ) -> view auto
+   constexpr view auto window( I&& source )
   {
       using index_type  = index_type_of_t<I>;
       using return_type = element_type_of_t<I>;
@@ -54,7 +52,7 @@ namespace yam
 
 // overload for lvalue references - capture source by reference
    template<indexable I>
-   constexpr auto cwindow( I& source ) -> view auto
+   constexpr view auto cwindow( I& source )
   {
       using index_type  = index_type_of_t<I>;
       using return_type = const element_type_of_t<I>;
@@ -66,7 +64,7 @@ namespace yam
 
 // overload for rvalue references - capture source by value
    template<indexable I>
-   constexpr auto cwindow( I&& source ) -> view auto
+   constexpr view auto cwindow( I&& source )
   {
       using index_type  = index_type_of_t<I>;
       using return_type = const element_type_of_t<I>;

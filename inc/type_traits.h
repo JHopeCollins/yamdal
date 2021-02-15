@@ -76,7 +76,7 @@ namespace yam
 
    // true
    template<typename A>
-      requires requires(){ { A::ndim } -> std::same_as<const ndim_t&>; }
+      requires requires(){ { (std::remove_reference_t<A>::ndim) } -> std::same_as<const ndim_t&>; }
    struct has_ndim_member<A> : std::true_type {};
 
 // helper variable template
@@ -92,7 +92,7 @@ namespace yam
 
    // true
    template<typename A>
-      requires requires(){ { A::grid } -> std::same_as<const grid_t&>; }
+      requires requires(){ { (std::remove_reference_t<A>::grid) } -> std::same_as<const grid_t&>; }
    struct has_grid_member<A> : std::true_type {};
 
 // helper variable template
@@ -108,8 +108,8 @@ namespace yam
 
    // true
    template<typename A>
-      requires requires(){ typename A::index_type; }
-            && is_index_type_v<typename A::index_type>
+      requires requires(){ typename std::remove_reference_t<A>::index_type; }
+            && is_index_type_v<typename std::remove_reference_t<A>::index_type>
    struct has_index_type_member<A> : std::true_type {};
 
 // helper variable template
@@ -125,8 +125,8 @@ namespace yam
 
    // true
    template<typename A>
-      requires requires(){ typename A::index_range_type; }
-            && is_index_range_type_v<typename A::index_range_type>
+      requires requires(){ typename std::remove_reference_t<A>::index_range_type; }
+            && is_index_range_type_v<typename std::remove_reference_t<A>::index_range_type>
    struct has_index_range_type_member<A> : std::true_type {};
 
 // helper variable template
@@ -142,7 +142,7 @@ namespace yam
 
    // true
    template<typename A>
-      requires requires(){ typename A::element_type; }
+      requires requires(){ typename std::remove_reference_t<A>::element_type; }
    struct has_element_type_member<A> : std::true_type {};
 
 // helper variable template
@@ -172,7 +172,7 @@ namespace yam
 // specialisation with helper member
    template<typename A>
       requires has_ndim_member_v<A>
-   struct ndim_of<A> : ndim_constant<A::ndim> {};
+   struct ndim_of<A> : ndim_constant<std::remove_reference_t<A>::ndim> {};
 
 // specialisations without helper member
    // 1D
@@ -208,8 +208,6 @@ namespace yam
 
    template<typename A>
       requires requires(){ ndim_of_v<A>; }
-            && std::same_as<decltype(ndim_of_v<A>),
-                            const ndim_t>
    struct has_ndim<A> : std::true_type {};
 
 // helper variable template
@@ -227,7 +225,7 @@ namespace yam
 // specialisation with helper member
    template<typename A>
       requires has_grid_member_v<A>
-   struct grid_of<A> : grid_constant<A::grid> {};
+   struct grid_of<A> : grid_constant<std::remove_reference_t<A>::grid> {};
 
 // specialisations without helper member
    // primal
@@ -258,8 +256,6 @@ namespace yam
 
    template<typename A>
       requires requires(){ grid_of_v<A>; }
-            && std::same_as<decltype(grid_of_v<A>),
-                            const grid_t>
    struct has_grid<A> : std::true_type {};
 
 // helper variable template
@@ -277,7 +273,7 @@ namespace yam
 // specialisation with helper member
    template<typename A>
       requires has_index_type_member_v<A>
-   struct index_type_of<A> : std::type_identity<typename A::index_type> {};
+   struct index_type_of<A> : std::type_identity<typename std::remove_reference_t<A>::index_type> {};
 
 // specialisation without helper member
    template<typename A>
@@ -338,7 +334,7 @@ namespace yam
 // specialisation with helper member
    template<typename A>
       requires has_index_range_type_member_v<A>
-   struct index_range_type_of<A> : std::type_identity<typename A::index_range_type> {};
+   struct index_range_type_of<A> : std::type_identity<typename std::remove_reference_t<A>::index_range_type> {};
 
 // specialisation without helper member
    template<typename A>

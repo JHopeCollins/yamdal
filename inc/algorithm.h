@@ -74,6 +74,7 @@ namespace yam
             destination(idx) = source(idx);
         }
      }
+
       return;
   }
 
@@ -105,6 +106,7 @@ namespace yam
            }
         }
      }
+
       return;
   }
 
@@ -120,16 +122,15 @@ namespace yam
                             Source>
             && std::assignable_from<element_type_of_t<Destination>,
                                     element_type_of_t<Source>>
-   constexpr void assign(       execution::openmp_policy,
-                          const index_type_of_t<Source> begin_index,
-                          const index_type_of_t<Source>   end_index,
-                                Destination&            destination,
-                          const Source&                      source )
+   void assign(       execution::openmp_policy,
+                const index_type_of_t<Source> begin_index,
+                const index_type_of_t<Source>   end_index,
+                      Destination&            destination,
+                const Source&                      source )
   {
 //    if( is_empty_range( begin_index, end_index ) ){ return; }
 
       using index_type = index_type_of_t<Source>;
-      constexpr ndim_t ndim = ndim_of_v<Source>;
 
    # pragma omp parallel for
       for( idx_t i=begin_index[0]; i<end_index[0]; ++i )
@@ -166,12 +167,41 @@ namespace yam
                                     element_type_of_t<Source>>
    constexpr void assign( const index_type_of_t<Source> begin_index,
                           const index_type_of_t<Source>   end_index,
-                                Destination&            destination,
-                          const Source&                      source )
+                                Destination&&           destination,
+                                Source&&                     source )
   {
       assign( execution::seq,
               begin_index, end_index,
-              destination, source );
+              std::forward<Destination>(destination),
+              std::forward<Source>(source) );
+
+      return;
+  }
+
+/*
+ * if passed rvalue destination (for example a modifying-view), create lvalue wrapper to pass to assign implementation
+ *    need requires clause after function parameters so `destination` is in-scope for decltype(std::forward<Destination>(destination))
+ */
+   template<indexable Destination,
+            indexable Source>
+   constexpr void assign( const execution_policy auto        policy,
+                          const index_type_of_t<Source> begin_index,
+                          const index_type_of_t<Source>   end_index,
+                                Destination&&           destination,
+                                Source&&                     source )
+      requires same_grid_as<Destination,
+                            Source>
+            && std::assignable_from<element_type_of_t<Destination>,
+                                    element_type_of_t<Source>>
+            && (std::is_rvalue_reference_v<decltype(std::forward<Destination>(destination))>)
+  {
+      auto dest = window( std::forward<Destination>(destination) );
+
+      assign( policy,
+              begin_index, end_index,
+              dest,
+              std::forward<Source>(source) );
+
       return;
   }
 
@@ -195,18 +225,18 @@ namespace yam
 /*
  * lazy transform
  */
-   template<typename    TransformFunc,
-            indexable         Source0,
-            indexable...      Sources>
+   template<typename TransformFunc,
+            view           Source0,
+            view...        Sources>
       requires same_grid_as<Source0,
                             Sources...>
             && transformation<TransformFunc,
                               element_type_of_t<Source0>,
                               element_type_of_t<Sources>...>
    [[nodiscard]]
-   constexpr auto transform( TransformFunc&& transform_func,
-                             Source0&&              source0,
-                             Sources&&...           sources ) -> indexable auto
+   constexpr view auto transform( TransformFunc&& transform_func,
+                                  Source0&&              source0,
+                                  Sources&&...           sources )
   {
       using index_type = common_index_type_t<Source0,Sources...>;
 
@@ -218,7 +248,9 @@ namespace yam
                ...srcs{std::forward<Sources>(sources)} ]
             ( const index_type idx )
            {
-               return std::invoke( tfunc, src0(idx), srcs(idx)... );
+               return std::invoke( tfunc,
+                                   src0(idx),
+                                   srcs(idx)... );
            };
   }
 
@@ -236,16 +268,18 @@ namespace yam
    constexpr void transform( const execution_policy auto             policy,
                              const index_type_of_t<Destination> begin_index,
                              const index_type_of_t<Destination>   end_index,
-                                   Destination&                 destination,
+                                   Destination&&                destination,
                                    TransformFunc&&           transform_func,
                                    Sources&&...                     sources )
   {
    // need to create a view (window) of each source to avoid copying entire array into lazy transform adaptor
       assign( policy,
               begin_index, end_index,
-              destination,
+              std::forward<Destination>(destination),
               transform( std::forward<TransformFunc>(transform_func),
                          window(std::forward<Sources>(sources))... ) );
+
+      return;
   }
 
 /*
@@ -261,15 +295,17 @@ namespace yam
                                 element_type_of_t<Sources>...>
    constexpr void transform( const index_type_of_t<Destination> begin_index,
                              const index_type_of_t<Destination>   end_index,
-                                   Destination&                 destination,
+                                   Destination&&                destination,
                                    TransformFunc&&           transform_func,
                                    Sources&&...                     sources )
   {
       transform( execution::seq,
                  begin_index, end_index,
-                 destination,
+                 std::forward<Destination>(destination),
                  std::forward<TransformFunc>(transform_func),
                  std::forward<Sources>(sources)... );
+
+      return;
   }
 
 /*
@@ -303,7 +339,7 @@ namespace yam
    // always return reference to current reduction-value (init)
       const auto init_wrapper =
          [ &init ]
-         ( const index_type ) -> ReduceType&
+         ( index_type ) -> ReduceType&
         {
             return init;
         };
@@ -318,9 +354,10 @@ namespace yam
         };
 
    // at each element, executes: init=reduce_func(init,element)
+   // have no need for init_wrapper and reducer after this call, so can move
       transform( execution::seq,
                  begin_index, end_index,
-                 std::move(init_wrapper),
+                 init_wrapper,
                  std::move(reducer),
                  std::forward<Source>(source) );
 
@@ -372,7 +409,7 @@ namespace yam
                                         element_type_of_t<Source0>,
                                         element_type_of_t<Sources>...>
    [[nodiscard]]
-   constexpr ReduceType transform_reduce(       execution_policy auto         policy,
+   constexpr ReduceType transform_reduce( const execution_policy auto         policy,
                                           const index_type_of_t<Source0> begin_index,
                                           const index_type_of_t<Source0>   end_index,
                                                 TransformFunc&&       transform_func,

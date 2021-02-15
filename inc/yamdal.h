@@ -49,6 +49,8 @@ namespace yam
       static constexpr ndim_t ndim = NDIM;
       static constexpr grid_t grid = GRID;
 
+      using index_type = index<ndim,grid>;
+
       std::array<idx_t,ndim> idxs;
 
       [[nodiscard]]

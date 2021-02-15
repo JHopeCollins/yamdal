@@ -35,7 +35,7 @@ namespace yam
          ndim_t i=ndim-2;
          while( i!=0 )
         {
-            strides[i] = strides[i+1]*irng[i+1];
+            strides[i] = strides[i+1]*irng.extent(i+1);
             --i;
         }
      }
