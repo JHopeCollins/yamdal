@@ -1,5 +1,5 @@
 
-# include <yamdal.h>
+# include <yamdal/index.h>
 
    int main()
   {

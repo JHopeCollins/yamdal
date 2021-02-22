@@ -3,30 +3,39 @@
 
 # directories
 INCLDEDIR = inc/#			header files
-SOURCEDIR = src/#			class / function source files
 SCRIPTDIR = script/#		main() function source files
 PROGRMDIR = progrm/#		executables
 
-# Class / function definition source files
-CSOURCE =
-
 # main() function files
 CSCRIPT = test.cpp \
-	test_views.cpp
+	test_views.cpp \
+	test_mdspan.cpp
 
 # compiler
-CCMP = g++-10
-#CCMP = clang++-10
+#CCMP = g++-10
+CCMP = clang++-10
+
+# flags with different definitions for different compilers
+ifeq ($(CCMP),clang++-10)
+OPENMP_FLAG = -fopenmp=libomp
+else ifeq ($(CCMP),g++-10)
+OPENMP_FLAG = -fopenmp
+else
+$(error Only g++-10 or clang++-10 supported)
+endif
+
+#OPENMP_FLAG = -fopenmp
+#OPENMP_FLAG = -fopenmp=libomp
 
 # debug/optimisation flags
 COPT = -ggdb3 -D_GLIBCXX_DEBUG -fsanitize=address,undefined -fno-omit-frame-pointer
 #COPT = -O3# -ffast-math -DNDEBUG
 
 # warnings
-CWARN = -Wall -Wextra -Wpedantic -Wshadow# -Wconversion
+CWARN = -Wall -Wextra -Wpedantic -Wshadow# -fconcepts-diagnostics-depth=2
 
 # language specs
-CSTD = -std=c++20 -fno-exceptions -fopenmp #-fconcepts-diagnostics-depth=2
+CSTD = -std=c++20 -fno-exceptions $(OPENMP_FLAG)
 
 # external libraries eg lapack, blas
 LIBS =
@@ -35,12 +44,11 @@ LIBS =
 #-------------------------------------
 #  variable definitions
 
-DIRS = $(INCLDEDIR) $(SOURCEDIR) $(SCRIPTDIR) $(PROGRMDIR)
+DIRS = $(INCLDEDIR) $(SCRIPTDIR) $(PROGRMDIR)
 
 INCLDE = $(addprefix -I,$(INCLDEDIR))
 
 # full paths for source, script and executable files
-SOURCE = $(addprefix $(SOURCEDIR),$(CSOURCE))
 SCRIPT = $(addprefix $(SCRIPTDIR),$(CSCRIPT))
 PROGRM = $(addprefix $(PROGRMDIR),$(CSCRIPT:.cpp=.out))
 
@@ -48,10 +56,9 @@ PROGRM = $(addprefix $(PROGRMDIR),$(CSCRIPT:.cpp=.out))
 PNAMES = $(CSCRIPT:.cpp=)
 
 # object files
-SOURCEOBJ = $(SOURCE:.cpp=.o)
 SCRIPTOBJ = $(SCRIPT:.cpp=.o)
 
-OBJS = $(SOURCEOBJ) $(SCRIPTOBJ)
+OBJS = $(SCRIPTOBJ)
 
 
 #-------------------------------------
@@ -61,29 +68,25 @@ OBJS = $(SOURCEOBJ) $(SCRIPTOBJ)
 %.o : %.cpp
 	$(CCMP) $(COPT) $(CSTD) $(CWARN) $(INCLDE) -o $@ -c $<
 
-## wraps all source object files into one
-#all.o : $(SOURCEOBJ)
-#	ld -r $^ -o $@
-
 # each executable depends on its own object file, and all source objects
-
-$(PROGRM) : $(PROGRMDIR)%.out : $(SCRIPTDIR)%.o $(SOURCEOBJ)
+$(PROGRM) : $(PROGRMDIR)%.out : $(SCRIPTDIR)%.o
 	$(CCMP) $(COPT) $(CSTD) $(CWARN) $(INCLDE) -o $@ $^ $(LIBS)
 
 
 #-------------------------------------
 # misc recipes
 
-.PHONY : all clean echo obj mkdir names $(PNAMES)
+.PHONY : clean $(PNAMES) all mkdir names
+
+# delete all non-source files
+clean:
+	rm -f $(OBJS) $(PROGRM)
 
 # make <pname> will compile only the executable 'pname.out'
 $(PNAMES) : % : $(PROGRMDIR)%.out
 
 # make all executables
 all: $(PROGRM)
-
-# make source objects
-obj: $(SOURCEOBJ)
 
 # create required directories
 mkdir:
@@ -92,8 +95,4 @@ mkdir:
 # print names of all executables to standard output
 names:
 	@for name in $(PNAMES); do echo $$name; done
-
-# delete all non-source files
-clean:
-	rm -f $(OBJS) $(PROGRM)
 

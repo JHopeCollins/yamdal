@@ -1,12 +1,14 @@
 
 # include <iostream>
 
-# include <algorithm.h>
-# include <execution.h>
-# include <concepts.h>
-# include <type_traits.h>
-# include <layouts.h>
-# include <yamdal.h>
+//# include <yamdal/algorithm.h>
+//# include <yamdal/execution.h>
+//# include <yamdal/concepts.h>
+//# include <yamdal/type_traits.h>
+//# include <yamdal/layouts.h>
+//# include <yamdal/index.h>
+
+# include <yamdal/all.h>
 
 # include <array>
 
@@ -22,13 +24,12 @@
 
    int main()
   {
-      constexpr yam::primal_index2 ip2{7,15};
+//    constexpr yam::primal_index2 ip2{7,15};
       constexpr yam::dual_index<2> id2{3,4};
 
-      constexpr yam::primal_index_range2 prng1(ip2);
-
-      constexpr yam::primal_index_range2 prng2(yam::to_primal(prng1));
-      constexpr yam::dual_index_range2 drng2(yam::to_dual(prng2));
+//    constexpr yam::primal_index_range2 prng1(ip2);
+//    constexpr yam::primal_index_range2 prng2(yam::to_primal(prng1));
+//    constexpr yam::dual_index_range2 drng2(yam::to_dual(prng2));
 
       constexpr size_t ni=2;
       constexpr size_t nj=4;

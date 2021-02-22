@@ -1,11 +1,11 @@
 
-# include <views.h>
-# include <algorithm.h>
-# include <execution.h>
-# include <concepts.h>
-# include <type_traits.h>
-# include <layouts.h>
-# include <yamdal.h>
+# include <yamdal/views.h>
+# include <yamdal/algorithm.h>
+# include <yamdal/execution.h>
+# include <yamdal/concepts.h>
+# include <yamdal/type_traits.h>
+# include <yamdal/layouts.h>
+# include <yamdal/index.h>
 
 # include <iostream>
 # include <array>

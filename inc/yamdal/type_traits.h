@@ -1,7 +1,7 @@
 
 # pragma once
 
-# include <yamdal.h>
+# include "index.h"
 
 # include <concepts>
 # include <type_traits>

@@ -1,9 +1,9 @@
 
 # pragma once
 
-# include <concepts.h>
-# include <type_traits.h>
-# include <yamdal.h>
+# include "concepts.h"
+# include "type_traits.h"
+# include "index.h"
 
 namespace yam
 {

@@ -63,7 +63,7 @@ namespace yam
 // deduction guide
    template<std::integral... Is>
    index( Is... )
-      -> index<sizeof...(Is),primal>;
+      -> index<sizeof...(Is)>;
 
 /*
  * index comparisons
@@ -248,51 +248,52 @@ namespace yam
    using primal_index_range2 = index_range<2,primal>;
    using primal_index_range3 = index_range<3,primal>;
 
-   using   dual_index_range1 = index_range<1,dual>;
-   using   dual_index_range2 = index_range<2,dual>;
-   using   dual_index_range3 = index_range<3,dual>;
+   using dual_index_range1 = index_range<1,dual>;
+   using dual_index_range2 = index_range<2,dual>;
+   using dual_index_range3 = index_range<3,dual>;
 
 /*
  * ===============================================================
  */
 
 /*
+ * convert type between primal/dual grids
+ */
+   template<grid_t grid,
+            typename  T>
+      requires requires( T t ){ to_primal(t); to_dual(t); }
+   [[nodiscard]]
+   constexpr auto to_grid( const T& t )
+  {
+      if constexpr( grid == primal )
+     {
+         return to_primal( t );
+     }
+      else /*     ( grid == dual ) */
+     {
+         return to_dual( t );
+     }
+  }
+
+/*
  * convert index between primal and dual grids (no change in indices, just template tags)
  */
-   template<ndim_t ndim>
+   template<ndim_t ndim,
+            grid_t grid>
    [[nodiscard]]
-   constexpr auto to_primal( const primal_index<ndim> pidx )
+   constexpr auto to_primal( const index<ndim,grid> idx )
       -> primal_index<ndim>
   {
-      return pidx;
+      return {idx.idxs};
   }
 
-   template<ndim_t ndim>
+   template<ndim_t ndim,
+            grid_t grid>
    [[nodiscard]]
-   constexpr auto to_primal( const dual_index<ndim> didx )
-      -> primal_index<ndim>
-  {
-      primal_index<ndim> pidx;
-      for( ndim_t i=0; i<ndim; ++i ){ pidx[i]=didx[i]; }
-      return pidx;
-  }
-
-   template<ndim_t ndim>
-   [[nodiscard]]
-   constexpr auto to_dual( const dual_index<ndim> didx )
+   constexpr auto to_dual( const index<ndim,grid> idx )
       -> dual_index<ndim>
   {
-      return didx;
-  }
-
-   template<ndim_t ndim>
-   [[nodiscard]]
-   constexpr auto to_dual( const primal_index<ndim> pidx )
-      -> dual_index<ndim>
-  {
-      dual_index<ndim> didx;
-      for( ndim_t i=0; i<ndim; ++i ){ didx[i]=pidx[i]; }
-      return didx;
+      return {idx.idxs};
   }
 
 /*
@@ -379,7 +380,7 @@ namespace yam
    constexpr bool is_empty_range( const index<ndim,grid> begin_index,
                                   const index<ndim,grid>   end_index )
   {
-      return num_elems(begin_index,end_index)==0;
+      return is_empty_range(index_range(begin_index,end_index))==0;
   }
 
 }
