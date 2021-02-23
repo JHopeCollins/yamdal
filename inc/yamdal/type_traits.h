@@ -20,7 +20,7 @@ namespace yam
 /*
  * ===============================================================
  *
- * Type traits to test if a type is a specialisation of the basic yamdal template types (index, index_range etc).
+ * Type traits to test if a type is a specialisation of the basic yamdal template types (index etc).
  * Cannot do simple generic 'is_same_template' type trait because of non-type template parameters
  *
  * ===============================================================
@@ -41,22 +41,6 @@ namespace yam
 // helper variable template
    template<typename A>
    inline constexpr bool is_index_type_v = is_index_type<A>::value;
-
-/*
- * Returns if a type is a specialisation of yam::index_range
- */
-   // false
-   template<typename A>
-   struct is_index_range_type : std::false_type {};
-
-   // true
-   template<ndim_t ndim,
-            grid_t grid>
-   struct is_index_range_type<index_range<ndim,grid>> : std::true_type {};
-
-// helper variable template
-   template<typename A>
-   inline constexpr bool is_index_range_type_v = is_index_range_type<A>::value;
 
 /*
  * ===============================================================
@@ -115,23 +99,6 @@ namespace yam
 // helper variable template
    template<typename A>
    inline constexpr bool has_index_type_member_v = has_index_type_member<A>::value;
-
-/*
- * Returns if type has a type alias for the index_range
- */
-   // false
-   template<typename A>
-   struct has_index_range_type_member : std::false_type {};
-
-   // true
-   template<typename A>
-      requires requires(){ typename std::remove_reference_t<A>::index_range_type; }
-            && is_index_range_type_v<typename std::remove_reference_t<A>::index_range_type>
-   struct has_index_range_type_member<A> : std::true_type {};
-
-// helper variable template
-   template<typename A>
-   inline constexpr bool has_index_range_type_member_v = has_index_range_type_member<A>::value;
 
 /*
  * Returns if type has a type alias for the element type
@@ -322,46 +289,6 @@ namespace yam
 // helper type template
    template<typename... As>
    using common_index_type_t = typename common_index_type<As...>::type;
-
-/*
- * Returns the index_range type of the grid over which the indexable A is defined
- * The behaviour of a program for which A is not indexable, or is indexable with multiple index_range types is undefined.
- */
-
-// no definition if index_range_type not deducible
-   template<typename A> struct index_range_type_of;
-
-// specialisation with helper member
-   template<typename A>
-      requires has_index_range_type_member_v<A>
-   struct index_range_type_of<A> : std::type_identity<typename std::remove_reference_t<A>::index_range_type> {};
-
-// specialisation without helper member
-   template<typename A>
-      requires (!has_index_range_type_member_v<A>)
-            && has_ndim_v<A>
-            && has_grid_v<A>
-   struct index_range_type_of<A> : std::type_identity<index_range<ndim_of_v<A>,
-                                                      grid_of_v<A>>> {};
-
-// helper type template
-   template<typename A>
-   using index_range_type_of_t = typename index_range_type_of<A>::type;
-
-/*
- * Return whether index_range_type_of<A> is able to deduce the index_range type of the underlying grid
- */
-   template<typename A>
-   struct has_index_range_type : std::false_type {};
-
-   template<typename A>
-      requires requires(){ typename index_range_type_of<A>::type; }
-            && is_index_range_type_v<typename index_range_type_of<A>::type>
-   struct has_index_range_type<A> : std::true_type {};
-
-// helper variable template
-   template<typename A>
-   inline constexpr bool has_index_range_type_v = has_index_range_type<A>::value;
 
 /*
  * ===============================================================

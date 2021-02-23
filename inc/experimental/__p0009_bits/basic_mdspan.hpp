@@ -43,7 +43,7 @@
 
 /*
  * This file has been edited by Josh Hope-Collins (joshua.hope-collins@ox.ac.uk) to roll-back changes from commit "Work around MSVC warning C4348" (https://github.com/kokkos/mdspan/commit/9baf320edbf10315a9c136ba91a08810dfc3a68c).
- * This edit fixes errors identified in issue "Removed template method used #30" (https://github.com/kokkos/mdspan/issues/30).
+ * This edit fixes errors identified in issue "Removed template method used #30" (https://github.com/kokkos/mdspan/issues/30) for clang and gcc.
  */
 
 #pragma once

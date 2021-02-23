@@ -64,10 +64,6 @@
       static_assert( std::copy_constructible<decltype(arr2)> );
       static_assert( std::move_constructible<decltype(arr2)> );
 
-   // deduction guide or using default alias parameters
-//    constexpr yam::index    begin_index{0,0};
-//    constexpr yam::index2<> end_index{ni,nj};
-
       auto arr2_cview = yam::cwindow(arr2);
       auto arr2_view = yam::window(arr2);
 

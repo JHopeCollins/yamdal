@@ -9,7 +9,8 @@ PROGRMDIR = progrm/#		executables
 # main() function files
 CSCRIPT = test.cpp \
 	test_views.cpp \
-	test_mdspan.cpp
+	test_mdspan.cpp \
+	extents_manip.cpp
 
 # compiler
 #CCMP = g++-10
@@ -24,11 +25,8 @@ else
 $(error Only g++-10 or clang++-10 supported)
 endif
 
-#OPENMP_FLAG = -fopenmp
-#OPENMP_FLAG = -fopenmp=libomp
-
 # debug/optimisation flags
-COPT = -ggdb3 -D_GLIBCXX_DEBUG -fsanitize=address,undefined -fno-omit-frame-pointer
+COPT = -ggdb3 -fsanitize=address,undefined -fno-omit-frame-pointer# -D_GLIBCXX_DEBUG
 #COPT = -O3# -ffast-math -DNDEBUG
 
 # warnings

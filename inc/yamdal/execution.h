@@ -1,8 +1,6 @@
 
 # pragma once
 
-//# include "index.h"
-
 namespace yam
 {
 /*
@@ -12,9 +10,6 @@ namespace yam
  *
  * ===============================================================
  */
-# ifdef _OPENACC
-   static_assert( false, "openacc execution not implemented yet" );
-# endif
 
    namespace execution
   {
@@ -29,10 +24,10 @@ namespace yam
       inline constexpr openmp_policy openmp;
 # endif
 
-# ifdef _OPENACC
-      struct openacc_policy {}
-      inline constexpr openacc_policy openacc;
-# endif
+// # ifdef _OPENACC
+//       struct openacc_policy {}
+//       inline constexpr openacc_policy openacc;
+// # endif
   }
 
 /*
@@ -48,9 +43,9 @@ namespace yam
    template<> struct is_execution_policy<execution::openmp_policy> : std::true_type {};
 # endif
 
-# ifdef _OPENACC
-   template<> struct is_execution_policy<execution::openacc_policy> : std::true_type {};
-# endif
+// # ifdef _OPENACC
+//    template<> struct is_execution_policy<execution::openacc_policy> : std::true_type {};
+// # endif
 
 // helper variable template
    template<typename T>

@@ -1,13 +1,6 @@
 
 # include <iostream>
 
-//# include <yamdal/algorithm.h>
-//# include <yamdal/execution.h>
-//# include <yamdal/concepts.h>
-//# include <yamdal/type_traits.h>
-//# include <yamdal/layouts.h>
-//# include <yamdal/index.h>
-
 # include <yamdal/all.h>
 
 # include <array>
@@ -24,23 +17,8 @@
 
    int main()
   {
-//    constexpr yam::primal_index2 ip2{7,15};
-      constexpr yam::dual_index<2> id2{3,4};
-
-//    constexpr yam::primal_index_range2 prng1(ip2);
-//    constexpr yam::primal_index_range2 prng2(yam::to_primal(prng1));
-//    constexpr yam::dual_index_range2 drng2(yam::to_dual(prng2));
-
       constexpr size_t ni=2;
       constexpr size_t nj=4;
-
-      constexpr yam::index_range<2,yam::dual> irng1(id2);
-
-      static_assert( irng1.begin_index[0] == 0 );
-      static_assert( irng1.begin_index[1] == 0 );
-
-      static_assert( irng1.end_index[0] == id2[0] );
-      static_assert( irng1.end_index[1] == id2[1] );
 
    // underlying memory
       matrix2_t<int,ni,nj> m2{};
@@ -64,18 +42,19 @@
         };
 
    // deduction guide or using default alias parameters
-      constexpr yam::index    begin_index{0,0};
-      constexpr yam::index2<> end_index{ni,nj};
+      constexpr yam::index begin_index{0,0};
+      constexpr stx::extents<ni,nj> exts;
 
       const auto print_2d_array =
-         []<yam::indexable2 Arr>
+         []<yam::indexable2 Arr,
+            ptrdiff_t...   Exts>
          ( const Arr& arr,
-           const yam::index_type_of_t<Arr> bidx,
-           const yam::index_type_of_t<Arr> eidx ) -> void
+           const yam::index_type_of_t<Arr> bi,
+           const stx::extents<Exts...>     ex ) -> void
         {
-            for( size_t i=bidx[0]; i<eidx[0]; ++i )
+            for( yam::idx_t i=bi[0]; i<bi[0]+ex.extent(0); ++i )
            {
-               for( size_t j=bidx[1]; j<eidx[1]; ++j )
+               for( yam::idx_t j=bi[1]; j<bi[1]+ex.extent(1); ++j )
               {
                   std::cout << arr({i,j}) << " ";
               }
@@ -83,14 +62,14 @@
            }
         };
 
-//    std::cout << "before:\n";
-//    print_2d_array( arr2, begin_index, end_index );
+      std::cout << "before:\n";
+      print_2d_array( arr2, begin_index, exts );
 
-      yam::assign( begin_index, end_index,
+      yam::assign( begin_index, exts,
                    arr2, flat2 );
 
-//    std::cout << "after:\n";
-//    print_2d_array( arr2, begin_index, end_index );
+      std::cout << "after:\n";
+      print_2d_array( arr2, begin_index, exts );
 
    // new matrix view
       matrix2_t<int,ni,nj> m3{};
@@ -112,18 +91,18 @@
 
       static_assert( yam::has_index_type_member_v<idx_t> );
 
-      yam::transform( yam::execution::seq,
-                      begin_index, end_index,
+      yam::transform( yam::execution::openmp,
+                      begin_index, exts,
                       arr3,
                       []( int i ){ return i+1; },
                       arr2 );
 
       std::cout << "eager plus 1:\n";
-      print_2d_array( arr3, begin_index, end_index );
+      print_2d_array( arr3, begin_index, exts );
 
       const auto sum =
          yam::reduce( yam::execution::seq,
-                      begin_index, end_index,
+                      begin_index, exts,
                       std::plus<int>{},
                       0,
                       arr3 );
