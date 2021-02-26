@@ -222,6 +222,101 @@ namespace yam
       return;
   }
 
+/*
+ * ===============================================================
+ *
+ * yam::fill
+ * assign all elements in range [begin_index,begin_index+extents) to `value`
+ *
+ * ===============================================================
+ */
+
+   template<indexable Destination,
+            ptrdiff_t...     Exts,
+            typename    ValueType>
+      requires (sizeof...(Exts)==ndim_of_v<Destination>)
+            && std::assignable_from<element_type_of_t<Destination>,
+                                    ValueType>
+   constexpr void fill( const execution_policy auto             policy,
+                        const index_type_of_t<Destination> begin_index,
+                        const stx::extents<Exts...>            extents,
+                              Destination&&                destination,
+                        const ValueType&                         value )
+  {
+      assign( policy,
+              begin_index, extents,
+              std::forward<Destination>(destination),
+              [&]( index_type_of_t<Destination> ){ return value; } );
+      return;
+  }
+
+// if no policy is given, use serial
+   template<indexable Destination,
+            ptrdiff_t...     Exts,
+            typename    ValueType>
+      requires (sizeof...(Exts)==ndim_of_v<Destination>)
+            && std::assignable_from<element_type_of_t<Destination>,
+                                    ValueType>
+   constexpr void fill( const index_type_of_t<Destination> begin_index,
+                        const stx::extents<Exts...>            extents,
+                              Destination&&                destination,
+                              ValueType&&                        value )
+  {
+      fill( execution::seq,
+            begin_index, extents,
+            std::forward<Destination>(destination),
+            std::forward<ValueType>(value) );
+      return;
+  }
+
+/*
+ * ===============================================================
+ *
+ * yam::generate
+ * assign all elements in range [begin_index,begin_index+extents) to successive calls to generator()
+ *
+ * ===============================================================
+ */
+
+   template<indexable Destination,
+            ptrdiff_t...     Exts,
+            typename    Generator>
+      requires (sizeof...(Exts)==ndim_of_v<Destination>)
+            && std::invocable<Generator>
+            && std::assignable_from<element_type_of_t<Destination>,
+                                    std::invoke_result_t<Generator>>
+   constexpr void generate( const execution_policy auto             policy,
+                            const index_type_of_t<Destination> begin_index,
+                            const stx::extents<Exts...>            extents,
+                                  Destination&&                destination,
+                            const Generator&                     generator )
+  {
+      assign( policy,
+              begin_index, extents,
+              std::forward<Destination>(destination),
+              [&]( index_type_of_t<Destination> ){ return generator(); } );
+      return;
+  }
+
+// if no policy is given, use serial
+   template<indexable Destination,
+            ptrdiff_t...     Exts,
+            typename    Generator>
+      requires (sizeof...(Exts)==ndim_of_v<Destination>)
+            && std::invocable<Generator>
+            && std::assignable_from<element_type_of_t<Destination>,
+                                    std::invoke_result_t<Generator>>
+   constexpr void generate( const index_type_of_t<Destination> begin_index,
+                            const stx::extents<Exts...>            extents,
+                                  Destination&&                destination,
+                                  Generator&&                    generator )
+  {
+      generate( execution::seq,
+                begin_index, extents,
+                std::forward<Destination>(destination),
+                std::forward<Generator>(generator) );
+      return;
+  }
 
 /*
  * ===============================================================

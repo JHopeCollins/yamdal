@@ -109,5 +109,15 @@
 
       std::cout << "sum of plus1: " << sum << "\n";
 
+      yam::fill( begin_index, exts,
+                 arr2, 1 );
+      std::cout << "all 1\n";
+      print_2d_array( arr2, begin_index, exts );
+
+      yam::generate( begin_index, exts,
+                 arr2, []{return 42;} );
+      std::cout << "all 42\n";
+      print_2d_array( arr2, begin_index, exts );
+
       return 0;
   }

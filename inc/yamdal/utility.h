@@ -23,7 +23,8 @@ namespace yam::util
             Integral...       Ints>
    [[nodiscard]]
    constexpr std::integer_sequence<Integral,Ints...>
-   concat_sequences( std::integer_sequence<Integral,Ints...> )
+   concat_sequences(
+      std::integer_sequence<Integral,Ints...> )
   {
       return {};
   }
@@ -34,8 +35,9 @@ namespace yam::util
             Integral...      Ints1>
    [[nodiscard]]
    constexpr std::integer_sequence<Integral,Ints0...,Ints1...>
-   concat_sequences( std::integer_sequence<Integral,Ints0...>,
-                     std::integer_sequence<Integral,Ints1...> )
+   concat_sequences(
+      std::integer_sequence<Integral,Ints0...>,
+      std::integer_sequence<Integral,Ints1...> )
   {
       return {};
   }
@@ -47,9 +49,10 @@ namespace yam::util
             typename...     Others>
    [[nodiscard]]
    constexpr auto
-   concat_sequences( std::integer_sequence<Integral,Ints0...>,
-                     std::integer_sequence<Integral,Ints1...>,
-                     Others... )
+   concat_sequences(
+      std::integer_sequence<Integral,Ints0...>,
+      std::integer_sequence<Integral,Ints1...>,
+      Others... )
   {
       return concat_sequences( std::integer_sequence<Integral,Ints0...,Ints1...>{},
                                Others{}... );
@@ -65,8 +68,9 @@ namespace yam::util
                          Integral  i )
                        { { p(i) } -> std::convertible_to<bool>; }
    [[nodiscard]]
-   constexpr auto filter_sequence( std::integer_sequence<Integral,Ints...>,
-                                   Predicate pred )
+   constexpr auto filter_sequence(
+      std::integer_sequence<Integral,Ints...>,
+      Predicate predicate )
   {
       constexpr auto filter_single =
          []<Integral I>
@@ -83,7 +87,7 @@ namespace yam::util
          return concat_sequences(
                   filter_single(
                      std::integer_sequence<Integral,Ints>{},
-                     pred )... );
+                     predicate )... );
      }
    // empty list case
       else
@@ -98,7 +102,8 @@ namespace yam::util
  */
    template<ptrdiff_t... Exts>
    [[nodiscard]]
-   constexpr auto get_dynamic_extent_indices( std::integer_sequence<ptrdiff_t,Exts...> )
+   constexpr auto get_dynamic_extent_indices(
+      std::integer_sequence<ptrdiff_t,Exts...> )
   {
    // enumerate extent list
       using Indices = decltype(std::make_index_sequence<sizeof...(Exts)>());
@@ -120,7 +125,8 @@ namespace yam::util
 
    template<ptrdiff_t... Exts>
    [[nodiscard]]
-   constexpr auto get_dynamic_extent_indices( stx::extents<Exts...> )
+   constexpr auto get_dynamic_extent_indices(
+      stx::extents<Exts...> )
   {
       return get_dynamic_extent_indices( std::integer_sequence<ptrdiff_t,Exts...>{} );
   }
@@ -132,7 +138,8 @@ namespace yam::util
             ptrdiff_t  NewVal,
             ptrdiff_t... Exts>
    [[nodiscard]]
-   constexpr auto replace_nth_extent( stx::extents<Exts...> exts )
+   constexpr auto replace_nth_extent(
+      stx::extents<Exts...> exts )
   {
    // lambda just to get Idxs...
       return [&]<size_t... Idxs>( std::index_sequence<Idxs...> )
