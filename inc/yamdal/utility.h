@@ -11,6 +11,7 @@ namespace yam::util
    template<size_t N>
    [[nodiscard]]
    constexpr auto get( auto... vals )
+      requires (N<sizeof...(vals))
   {
       return std::get<N>(std::tuple{vals...});
   }

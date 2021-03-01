@@ -172,7 +172,7 @@ namespace yam
   {
       return [&]<auto... Idxs>( std::index_sequence<Idxs...> ) -> size_t
      {
-         return ((end_index[Idxs]-begin_index[Idxs])*...);
+         return size_t((std::max<ptrdiff_t>(0,end_index[Idxs]-begin_index[Idxs])*...));
      }(std::make_index_sequence<ndim>());
   }
 

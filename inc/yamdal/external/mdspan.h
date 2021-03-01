@@ -15,9 +15,9 @@ namespace yam
    [[nodiscard]]
    constexpr size_t num_elems( const stx::extents<Exts...> exts )
   {
-      return [&]<auto... Idxs>( std::index_sequence<Idxs...> )
+      return [&]<auto... Idxs>( std::index_sequence<Idxs...> ) -> size_t
      {
-         return (exts.extent(Idxs)*...);
+         return size_t((std::max<ptrdiff_t>(0,exts.extent(Idxs))*...));
      }(std::make_index_sequence<sizeof...(Exts)>());
   }
 
