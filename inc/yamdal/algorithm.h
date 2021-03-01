@@ -4,9 +4,10 @@
 # include "views.h"
 # include "concepts.h"
 # include "index.h"
-# include "mdspan.h"
 # include "execution.h"
 # include "utility.h"
+
+# include "external/mdspan.h"
 
 # include <functional>
 # include <concepts>

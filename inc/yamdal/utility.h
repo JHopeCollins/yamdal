@@ -1,7 +1,7 @@
 
 # pragma once
 
-# include "mdspan.h"
+# include "external/mdspan.h"
 
 namespace yam::util
 {
@@ -106,7 +106,7 @@ namespace yam::util
       std::integer_sequence<ptrdiff_t,Exts...> )
   {
    // enumerate extent list
-      using Indices = decltype(std::make_index_sequence<sizeof...(Exts)>());
+      using indices_t = decltype(std::make_index_sequence<sizeof...(Exts)>());
 
       return []<size_t... Idxs>( std::index_sequence<Idxs...> )
      {
@@ -117,10 +117,10 @@ namespace yam::util
            };
 
          return filter_sequence(
-                  Indices{},
+                  indices_t{},
                   extent_is_dynamic );
 
-     }( Indices{} );
+     }( indices_t{} );
   }
 
    template<ptrdiff_t... Exts>

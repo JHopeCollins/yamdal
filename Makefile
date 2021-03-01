@@ -26,11 +26,11 @@ $(error Only g++-10 or clang++-10 supported)
 endif
 
 # debug/optimisation flags
-COPT = -ggdb3 -fsanitize=address,undefined -fno-omit-frame-pointer# -D_GLIBCXX_DEBUG
+COPT = -ggdb3 -fno-omit-frame-pointer -fsanitize=address,undefined# -D_GLIBCXX_DEBUG
 #COPT = -O3# -ffast-math -DNDEBUG
 
 # warnings
-CWARN = -Wall -Wextra -Wpedantic -Wshadow# -fconcepts-diagnostics-depth=2
+CWARN = -Wall -Wextra -Wpedantic -Wshadow -Wconversion# -fconcepts-diagnostics-depth=2
 
 # language specs
 CSTD = -std=c++20 -fno-exceptions $(OPENMP_FLAG)

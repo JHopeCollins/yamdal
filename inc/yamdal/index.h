@@ -60,9 +60,9 @@ namespace yam
   };
 
 // deduction guide
-   template<std::integral... Is>
+   template<std::convertible_to<idx_t>... Is>
    index( Is... )
-      -> index<sizeof...(Is)>;
+      -> index<ndim_t(sizeof...(Is))>;
 
 /*
  * index comparisons
@@ -166,19 +166,19 @@ namespace yam
 // number of elements in a grid range with given begin/end indices
    template<ndim_t ndim,
             grid_t grid>
+   [[nodiscard]]
    constexpr size_t num_elems( const index<ndim,grid> begin_index,
                                const index<ndim,grid>   end_index )
   {
-      size_t num=1;
-      for( ndim_t i=0; i<ndim; ++i )
+      return [&]<auto... Idxs>( std::index_sequence<Idxs...> ) -> size_t
      {
-         num*= end_index[i] - begin_index[i];
-     }
-      return num;
+         return ((end_index[Idxs]-begin_index[Idxs])*...);
+     }(std::make_index_sequence<ndim>());
   }
 
    template<ndim_t ndim,
             grid_t grid>
+   [[nodiscard]]
    constexpr bool is_empty_range( const index<ndim,grid> begin_index,
                                   const index<ndim,grid>   end_index )
   {

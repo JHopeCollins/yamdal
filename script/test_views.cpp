@@ -4,7 +4,6 @@
 # include <yamdal/execution.h>
 # include <yamdal/concepts.h>
 # include <yamdal/type_traits.h>
-# include <yamdal/layouts.h>
 # include <yamdal/index.h>
 
 # include <iostream>
