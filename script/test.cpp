@@ -17,6 +17,12 @@
 
    int main()
   {
+      static_assert( yam::execution_policy<yam::execution::serial_policy> );
+      static_assert( yam::execution_policy<yam::execution::openmp_policy> );
+
+      static_assert( yam::execution_policy<decltype(yam::execution::seq)> );
+      static_assert( yam::execution_policy<decltype(yam::execution::openmp)> );
+
       constexpr size_t ni=2;
       constexpr size_t nj=4;
 
@@ -27,8 +33,8 @@
       yam::indexable2_r<int&> auto arr2 =
          [&m2]( const yam::index2<>& ij ) -> int&
         {
-            const auto i = ij[0];
-            const auto j = ij[1];
+            const auto i = size_t(ij[0]);
+            const auto j = size_t(ij[1]);
             return m2[i][j];
         };
 
@@ -36,9 +42,9 @@
       yam::indexable2_r<int> auto flat2 =
          [=]( const yam::index2<>& ij ) -> int
         {
-            const auto i = ij[0];
-            const auto j = ij[1];
-            return i*nj + j;
+            const auto i = int(ij[0]);
+            const auto j = int(ij[1]);
+            return i*int(nj) + j;
         };
 
    // deduction guide or using default alias parameters
@@ -76,8 +82,8 @@
       const yam::indexable2_r<int&> auto arr3 =
          [&m3]( const yam::index2<>& ij ) -> int&
         {
-            const auto i = ij[0];
-            const auto j = ij[1];
+            const auto i = size_t(ij[0]);
+            const auto j = size_t(ij[1]);
             return m3[i][j];
         };
 

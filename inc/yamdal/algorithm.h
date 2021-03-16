@@ -12,6 +12,8 @@
 # include <functional>
 # include <concepts>
 
+# include <cassert>
+
 namespace yam
 {
 /*
@@ -213,6 +215,11 @@ namespace yam
             && (std::is_rvalue_reference_v<decltype(std::forward<Destination>(destination))>)
             && (sizeof...(Exts)==ndim_of_v<Source>)
   {
+      if( std::is_constant_evaluated() )
+     {
+         assert( is_constexpr_policy_v<decltype(policy)> );
+     }
+
       auto dest = window( std::forward<Destination>(destination) );
 
       assign( policy,
@@ -244,6 +251,11 @@ namespace yam
                               Destination&&                destination,
                         const ValueType&                         value )
   {
+      if( std::is_constant_evaluated() )
+     {
+         assert( is_constexpr_policy_v<decltype(policy)> );
+     }
+
       using index_type = index_type_of_t<Destination>;
 
       assign( policy,
@@ -294,6 +306,11 @@ namespace yam
                                   Destination&&                destination,
                             const Generator&                     generator )
   {
+      if( std::is_constant_evaluated() )
+     {
+         assert( is_constexpr_policy_v<decltype(policy)> );
+     }
+
       using index_type = index_type_of_t<Destination>;
 
       assign( policy,
@@ -391,6 +408,11 @@ namespace yam
                                    TransformFunc&&           transform_func,
                                    Sources&&...                     sources )
   {
+      if( std::is_constant_evaluated() )
+     {
+         assert( is_constexpr_policy_v<decltype(policy)> );
+     }
+
    // need to create a view (window) of each source to avoid copying entire array into lazy transform adaptor
       assign( policy,
               begin_index, exts,
@@ -513,6 +535,32 @@ namespace yam
   }
 
 /*
+ * OpenMP execution --------------------------------------------------
+ */
+
+# ifdef _OPENMP
+// template<typename ReduceFunc,
+//          typename ReduceType,
+//          indexable    Source,
+//          ptrdiff_t...   Exts>
+//    requires reduction<ReduceFunc,
+//                       ReduceType,
+//                       element_type_of_t<Source>>
+//          && (sizeof...(Exts)==ndim_of_v<Source>)
+// [[nodiscard]]
+// ReduceType reduce(       execution::openmp_policy,
+//                    const index_type_of_t<Source> begin_index,
+//                    const stx::extents<Exts...>          exts,
+//                          ReduceFunc&&            reduce_func,
+//                          ReduceType                     init,
+//                          Source&&                     source )
+//{
+//    using index_type = index_type_of_t<Source>;
+//    return init;
+//}
+# endif
+
+/*
  * ===============================================================
  *
  * yam::transform_reduce
@@ -545,6 +593,11 @@ namespace yam
                                                 Source0&&                    source0,
                                                 Sources&&...                 sources )
   {
+      if( std::is_constant_evaluated() )
+     {
+         assert( is_constexpr_policy_v<decltype(policy)> );
+     }
+
       return reduce( policy,
                      begin_index, exts,
                      std::forward<ReduceFunc>(reduce_func),
