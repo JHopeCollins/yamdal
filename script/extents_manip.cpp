@@ -145,7 +145,7 @@
 
    int main()
   {
-      using namespace yam::util;
+      using namespace yam::utl;
 
       constexpr size_t j=1;
       constexpr auto result =

@@ -154,7 +154,7 @@ namespace yam
          block_begin[0]=i;
 
       // make the 0th extent a static size of 1
-         const auto block_exts = util::replace_nth_extent<0,1>(exts);
+         const auto block_exts = replace_nth_extent<0,1>(exts);
 
       // each thread processes their own block sequentially
          assign( execution::seq,
@@ -244,10 +244,12 @@ namespace yam
                               Destination&&                destination,
                         const ValueType&                         value )
   {
+      using index_type = index_type_of_t<Destination>;
+
       assign( policy,
               begin_index, extents,
               std::forward<Destination>(destination),
-              [&]( index_type_of_t<Destination> ){ return value; } );
+              [&]( index_type ){ return value; } );
       return;
   }
 
@@ -292,10 +294,12 @@ namespace yam
                                   Destination&&                destination,
                             const Generator&                     generator )
   {
+      using index_type = index_type_of_t<Destination>;
+
       assign( policy,
               begin_index, extents,
               std::forward<Destination>(destination),
-              [&]( index_type_of_t<Destination> ){ return generator(); } );
+              [&]( index_type ){ return generator(); } );
       return;
   }
 

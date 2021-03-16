@@ -46,17 +46,17 @@
       yam::indexable2_r<int&> auto arr2 =
          [&m2]( const yam::index2<>& ij ) -> int&
         {
-            const auto i = ij[0];
-            const auto j = ij[1];
+            const auto i = size_t(ij[0]);
+            const auto j = size_t(ij[1]);
             return m2[i][j];
         };
 
    // generator returning 'flattened' index
       yam::indexable2_r<int> auto flat2 =
-         [=]( const yam::index2<>& ij ) -> int
+         [=]( const yam::index2<>& ij )
         {
-            const auto i = ij[0];
-            const auto j = ij[1];
+            const auto i = size_t(ij[0]);
+            const auto j = size_t(ij[1]);
             return i*nj + j;
         };
 
