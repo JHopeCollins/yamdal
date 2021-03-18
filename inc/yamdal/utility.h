@@ -1,6 +1,11 @@
 
 # pragma once
 
+# include <tuple>
+# include <utility>
+# include <concepts>
+# include <algorithm>
+
 namespace yam::utl
 {
 /*
@@ -94,4 +99,22 @@ namespace yam::utl
          return std::integer_sequence<Integral>{};
      }
   }
+
+   template<typename T,
+            size_t   N=64>
+   struct alignas(std::max(N,sizeof(T))) aligned_t
+  {
+      constexpr static size_t line_length = N;
+
+      using type = T;
+      using ref = T&;
+      using cref = const T&;
+
+      type data;
+
+//    explicit operator type() const { return data; }
+      operator ref()        { return data; }
+      operator cref() const { return data; }
+  };
+
 }

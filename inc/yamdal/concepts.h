@@ -596,6 +596,17 @@ namespace yam
 
 /*
  * Set of arguments for a reduce algorithm
+ *
+ * The following must be valid:
+ *
+ *    ReduceFunc       binary_op;
+ *    ReduceType       init;
+ *    const SourceType srct;
+ *
+ *    init = binary_op( init, srct );
+ *    init = binary_op( srct, init );
+ *    init = binary_op( init, init );
+ *    init = binary_op( srct, srct );
  */
    template<typename ReduceFunc,
             typename ReduceType,
@@ -603,8 +614,20 @@ namespace yam
    concept reduction =
       transformation_r<ReduceFunc,
                        ReduceType&,
-                       ReduceType&&,
-                       const SourceType&>;
+                       ReduceType&,
+                       const SourceType&>
+   && transformation_r<ReduceFunc,
+                       ReduceType&,
+                       const SourceType&,
+                       ReduceType&>
+   && transformation_r<ReduceFunc,
+                       ReduceType&,
+                       const SourceType&,
+                       const SourceType&>
+   && transformation_r<ReduceFunc,
+                       ReduceType&,
+                       ReduceType&,
+                       ReduceType&>;
 
 /*
  * Set of arguments for transform_reduce algorithm
