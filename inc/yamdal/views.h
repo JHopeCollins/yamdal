@@ -24,10 +24,11 @@ namespace yam
 
 // overload for lvalue references - capture source by reference
    template<indexable I>
-   constexpr auto window( I& source )
-      -> view_with_r<element_type_of_t<I>,
-                     ndim_of_v<I>,
-                     grid_of_v<I>> auto
+   [[nodiscard]]
+   constexpr view auto window( I& source )
+//    -> view_with_r<element_type_of_t<I>,
+//                   ndim_of_v<I>,
+//                   grid_of_v<I>> auto
   {
       using index_type  = index_type_of_t<I>;
       using return_type = element_type_of_t<I>;
@@ -39,10 +40,11 @@ namespace yam
 
 // overload for rvalue references - capture source by value
    template<indexable I>
-   constexpr auto window( I&& source )
-      -> view_with_r<element_type_of_t<I>,
-                     ndim_of_v<I>,
-                     grid_of_v<I>> auto
+   [[nodiscard]]
+   constexpr view auto window( I&& source )
+//    -> view_with_r<element_type_of_t<I>,
+//                   ndim_of_v<I>,
+//                   grid_of_v<I>> auto
   {
       using index_type  = index_type_of_t<I>;
       using return_type = element_type_of_t<I>;
@@ -58,10 +60,11 @@ namespace yam
 
 // overload for lvalue references - capture source by reference
    template<indexable I>
-   constexpr auto cwindow( I& source )
-      -> view_with_r<const element_type_of_t<I>,
-                     ndim_of_v<I>,
-                     grid_of_v<I>> auto
+   [[nodiscard]]
+   constexpr view auto cwindow( I& source )
+//    -> view_with_r<const element_type_of_t<I>,
+//                   ndim_of_v<I>,
+//                   grid_of_v<I>> auto
   {
       using index_type  = index_type_of_t<I>;
       using return_type = const element_type_of_t<I>;
@@ -73,10 +76,11 @@ namespace yam
 
 // overload for rvalue references - capture source by value
    template<indexable I>
-   constexpr auto cwindow( I&& source )
-      -> view_with_r<const element_type_of_t<I>,
-                     ndim_of_v<I>,
-                     grid_of_v<I>> auto
+   [[nodiscard]]
+   constexpr view auto cwindow( I&& source )
+//    -> view_with_r<const element_type_of_t<I>,
+//                   ndim_of_v<I>,
+//                   grid_of_v<I>> auto
   {
       using index_type  = index_type_of_t<I>;
       using return_type = const element_type_of_t<I>;

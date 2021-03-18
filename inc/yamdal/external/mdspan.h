@@ -4,6 +4,8 @@
 # include <experimental/mdspan>
 # include "../utility.h"
 
+# include <cassert>
+
 namespace stx = std::experimental;
 
 namespace yam
@@ -101,5 +103,26 @@ namespace yam
         }( new_dynamic_indices );
      }( std::make_index_sequence<sizeof...(Exts)>() );
   }
+
+/*
+ * return required size of underlying memory that would be required for an mdspan with layout `LayoutPolicy` and extents `exts`
+ *    note extents may be static or run-time, but function is only allowed in a constexpr environment if all extents are static
+ */
+   template<typename   LayoutPolicy,
+            ptrdiff_t...       Exts>
+   [[nodiscard]]
+   constexpr auto required_span_size(
+      stx::extents<Exts...> exts )
+  {
+      if( std::is_constant_evaluated() )
+     {
+         assert( ((Exts!=stx::dynamic_extent)&&...) );
+     }
+
+      using extents_t = stx::extents<Exts...>;
+      using mapping_t = typename LayoutPolicy::template mapping<extents_t>;
+      return mapping_t(exts).required_span_size();
+  }
+
 }
 

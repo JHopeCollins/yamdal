@@ -10,6 +10,7 @@ PROGRMDIR = progrm/#		executables
 CSCRIPT = test.cpp \
 	test_views.cpp \
 	test_mdspan.cpp \
+	test_reduce.cpp \
 	extents_manip.cpp
 
 # compiler
