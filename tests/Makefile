@@ -11,11 +11,11 @@ SCRIPTDIR = script/#		test main() function source file
 PROGRMDIR = progrm/#		test executables
 
 # test source files
-CSOURCE = test_index_h.cpp \
-	test_external_mdspan_h.cpp \
-	test_utility_h.cpp
+CSOURCE = index_h.cpp \
+	external/mdspan_h.cpp \
+	utility_h.cpp
 
-# main() function files
+# main() function file
 CSCRIPT = tests.cpp
 
 # compiler
@@ -58,8 +58,8 @@ SOURCE = $(addprefix $(SOURCEDIR),$(CSOURCE))
 SCRIPT = $(addprefix $(SCRIPTDIR),$(CSCRIPT))
 PROGRM = $(addprefix $(PROGRMDIR),$(CSCRIPT:.cpp=.out))
 
-# names of programs (no suffix)
-PNAMES = $(CSCRIPT:.cpp=)
+# name of program (no suffix)
+PNAME = $(CSCRIPT:.cpp=)
 
 # object files
 SOURCEOBJ = $(SOURCE:.cpp=.o)
@@ -75,7 +75,7 @@ OBJS = $(SOURCEOBJ) $(SCRIPTOBJ)
 %.o : %.cpp
 	$(CCMP) $(COPT) $(CSTD) $(CWARN) $(INCLDE) $(targetINCLDE) -o $@ -c $<
 
-# each executable depends on its own object file, and all source objects
+# executable depends on its own object file, and all source objects
 $(PROGRM) : $(PROGRMDIR)%.out : $(SCRIPTDIR)%.o $(SOURCEOBJ)
 	$(CCMP) $(COPT) $(CSTD) $(CWARN) $(INCLDE) $(targetINCLDE) -o $@ $^ $(LIBS)
 
@@ -83,30 +83,23 @@ $(PROGRM) : $(PROGRMDIR)%.out : $(SCRIPTDIR)%.o $(SOURCEOBJ)
 #-------------------------------------
 # misc recipes
 
-.PHONY : clean $(PNAMES) all obj clean-obj mkdir names
+.PHONY : clean build obj clean-obj run
+
+# make <pname> will compile only the executable 'pname.out'
+build : $(PROGRM)
+
+# make source objects
+obj: $(SOURCEOBJ)
 
 # delete all non-source files
 clean:
 	rm -f $(OBJS) $(PROGRM)
 
-# make <pname> will compile only the executable 'pname.out'
-$(PNAMES) : % : $(PROGRMDIR)%.out
-
-# make all executables
-all: $(PROGRM)
-
-# make source objects
-obj: $(SOURCEOBJ)
-
 # delete source file objects except main object
 clean-obj:
 	rm -f $(SOURCEOBJ)
 
-# create required directories
-mkdir:
-	mkdir $(DIRS)
-
-# print names of all executables to standard output
-names:
-	@for name in $(PNAMES); do echo $$name; done
+# run test
+run: $(PROGRM)
+	$(PROGRM)
 

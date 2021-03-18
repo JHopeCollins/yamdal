@@ -124,5 +124,14 @@ namespace yam
       return mapping_t(exts).required_span_size();
   }
 
+   template<typename   LayoutPolicy,
+            ptrdiff_t...       Exts>
+   [[nodiscard]]
+   constexpr auto required_span_size(
+      std::convertible_to<ptrdiff_t> auto... dynamic_exts )
+  {
+      return required_span_size<LayoutPolicy>(
+         stx::extents<Exts...>(dynamic_exts...) );
+  }
 }
 
