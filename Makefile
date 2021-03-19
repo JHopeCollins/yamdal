@@ -60,22 +60,24 @@ SCRIPTOBJ = $(SCRIPT:.cpp=.o)
 OBJS = $(SCRIPTOBJ)
 
 
+COMPILER_CMD = $(CCMP) $(COPT) $(CSTD) $(CWARN) $(INCLDE)
+
 #-------------------------------------
 # compilation recipes
 
 # default
 %.o : %.cpp
-	$(CCMP) $(COPT) $(CSTD) $(CWARN) $(INCLDE) -o $@ -c $<
+	$(COMPILER_CMD) -o $@ -c $<
 
 # each executable depends on its own object file, and all source objects
 $(PROGRM) : $(PROGRMDIR)%.out : $(SCRIPTDIR)%.o
-	$(CCMP) $(COPT) $(CSTD) $(CWARN) $(INCLDE) -o $@ $^ $(LIBS)
+	$(COMPILER_CMD) -o $@ $^ $(LIBS)
 
 
 #-------------------------------------
 # misc recipes
 
-.PHONY : clean $(PNAMES) all mkdir names
+.PHONY : clean $(PNAMES) all mkdir names run-$(PNAMES)
 
 # delete all non-source files
 clean:

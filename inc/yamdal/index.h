@@ -25,11 +25,6 @@ namespace yam
    inline constexpr grid_t   dual = grid_t::dual;
 
 /*
- * declarations
- */
-   template<ndim_t NDIM, grid_t GRID> struct index;
-
-/*
  * ===============================================================
  *
  * yam::index
