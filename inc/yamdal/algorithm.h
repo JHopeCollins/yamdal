@@ -559,9 +559,12 @@ namespace yam
   {
    // reduce functor using std::invoke
       auto rfunc =
-         std::bind( std::forward<ReduceFunc>(reduce_func),
-                    std::placeholders::_1,
-                    std::placeholders::_2 );
+         [&]( auto&& arg0, auto&& arg1 )
+        {
+            return std::invoke( reduce_func,
+                     std::forward<decltype(arg0)>(arg0),
+                     std::forward<decltype(arg1)>(arg1) );
+        };
 
    // reduction value for each thread, each on seperate cache lines
       using reduce_t = utl::aligned_t<ReduceType>;
