@@ -12,6 +12,10 @@
 # include <functional>
 # include <concepts>
 
+# ifdef _OPENMP
+# include <omp.h>
+# endif
+
 # include <cassert>
 
 namespace yam
@@ -184,19 +188,19 @@ namespace yam
    constexpr void assign( const index_type_of_t<Source> begin_index,
                           const stx::extents<Exts...>          exts,
                                 Destination&&           destination,
-                                Source&&                     source )
+                          const Source&                      source )
   {
       assign( execution::seq,
               begin_index, exts,
               std::forward<Destination>(destination),
-              std::forward<Source>(source) );
+              source );
 
       return;
   }
 
 /*
- * if passed rvalue destination (for example a modifying-view), create lvalue wrapper to pass to assign implementation
- *    need requires clause after function parameters so `destination` is in-scope for decltype(std::forward<Destination>(destination))
+ * if `assign` is passed an rvalue `destination` (for example a temporary modifying-view), this overload makes `destination` an lvalue to pass to assign implementation
+ *    need requires clause after function parameters so `destination` is in-scope for `decltype(std::forward<Destination>(destination))`
  */
    template<indexable Destination,
             indexable Source,
@@ -205,7 +209,7 @@ namespace yam
                           const index_type_of_t<Source> begin_index,
                           const stx::extents<Exts...>          exts,
                                 Destination&&           destination,
-                                Source&&                     source )
+                          const Source&                      source )
       requires same_grid_as<Destination,
                             Source>
             && std::assignable_from<element_type_of_t<Destination>,
@@ -218,12 +222,10 @@ namespace yam
          assert( is_constexpr_policy_v<decltype(policy)> );
      }
 
-      auto dest = window( std::forward<Destination>(destination) );
-
       assign( policy,
               begin_index, exts,
-              dest,
-              std::forward<Source>(source) );
+              destination,
+              source );
 
       return;
   }
@@ -259,7 +261,7 @@ namespace yam
       assign( policy,
               begin_index, extents,
               std::forward<Destination>(destination),
-              [&]( index_type ){ return value; } );
+              [&value]( index_type ){ return value; } );
       return;
   }
 
@@ -314,7 +316,7 @@ namespace yam
       assign( policy,
               begin_index, extents,
               std::forward<Destination>(destination),
-              [&]( index_type ){ return generator(); } );
+              [&generator]( index_type ){ return generator(); } );
       return;
   }
 
@@ -345,10 +347,10 @@ namespace yam
  *    yam::transform applies the given function TransformFunc to a variadic pack of indexables
  *    Two overload types are available
  *       1) returns an indexable lambda that lazily evaluates the transform when called with an index
- *             - note this overload copies the indexable arguments to the tranform
+ *             - note this overload copies the indexable `source` arguments to the transform
  *             - result can later be assigned to an index range using yam::assign
  *       2) eagerly evaluate the transformation and assign result into given indexable
- *             - evaluates only over a given index range [begin_index,begin_index+extents)
+ *             - evaluates only over a given index range [begin_index,begin_index+exts)
  *             - can be executed according to a yam::execution_policy
  *
  * ===============================================================
@@ -378,7 +380,7 @@ namespace yam
       return [ tfunc{std::forward<TransformFunc>(transform_func)},
                src0{std::forward<Source0>(source0)},
                ...srcs{std::forward<Sources>(sources)} ]
-            ( const index_type idx )
+            ( index_type idx )
            {
                return std::invoke( tfunc,
                                    src0(idx),
@@ -404,7 +406,7 @@ namespace yam
                              const stx::extents<Exts...>               exts,
                                    Destination&&                destination,
                                    TransformFunc&&           transform_func,
-                                   Sources&&...                     sources )
+                             const Sources&...                      sources )
   {
       if( std::is_constant_evaluated() )
      {
@@ -416,7 +418,7 @@ namespace yam
               begin_index, exts,
               std::forward<Destination>(destination),
               transform( std::forward<TransformFunc>(transform_func),
-                         window(std::forward<Sources>(sources))... ) );
+                         window(sources)... ) );
 
       return;
   }
@@ -472,15 +474,15 @@ namespace yam
    constexpr ReduceType reduce(       execution::serial_policy,
                                 const index_type_of_t<Source> begin_index,
                                 const stx::extents<Exts...>          exts,
-                                      ReduceFunc&&            reduce_func,
+                                      ReduceFunc              reduce_func,
                                       ReduceType                     init,
-                                      Source&&                     source )
+                                const Source&                      source )
   {
       using index_type   =   index_type_of_t<Source>;
       using element_type = element_type_of_t<Source>;
 
    // always return reference to current reduction-value (init)
-      const auto init_wrapper =
+      auto init_wrapper =
          [ &init ]
          ( index_type ) -> ReduceType&
         {
@@ -488,21 +490,20 @@ namespace yam
         };
 
    // return reduction of ( init , element )
-      const auto reducer =
-         [ &init, rfunc{std::forward<ReduceFunc>(reduce_func)} ]
+      auto reducer =
+         [ &init, &reduce_func ]
          ( const element_type& elem )
         {
-            return std::invoke( rfunc,
+            return std::invoke( reduce_func,
                                 std::move(init), elem );
         };
 
    // at each element, executes: init=reduce_func(init,element)
-   // have no need for init_wrapper and reducer after this call, so can move
       transform( execution::seq,
                  begin_index, exts,
                  init_wrapper,
-                 std::move(reducer),
-                 std::forward<Source>(source) );
+                 reducer,
+                 source );
 
       return init;
   }
@@ -553,9 +554,9 @@ namespace yam
    ReduceType reduce(       execution::openmp_policy,
                       const index_type_of_t<Source> begin_index,
                       const stx::extents<Exts...>          exts,
-                            ReduceFunc&&            reduce_func,
+                            ReduceFunc              reduce_func,
                             ReduceType                     init,
-                            Source&&                     source )
+                      const Source&                      source )
   {
    // reduce functor using std::invoke
       auto rfunc =
@@ -651,8 +652,8 @@ namespace yam
                                                 TransformFunc&&       transform_func,
                                                 ReduceFunc&&             reduce_func,
                                                 ReduceType&&                    init,
-                                                Source0&&                    source0,
-                                                Sources&&...                 sources )
+                                          const Source0&                     source0,
+                                          const Sources&...                  sources )
   {
       if( std::is_constant_evaluated() )
      {
@@ -664,8 +665,8 @@ namespace yam
                      std::forward<ReduceFunc>(reduce_func),
                      std::forward<ReduceType>(init),
                      transform( std::forward<TransformFunc>(transform_func),
-                                window(std::forward<Source0>(source0)),
-                                window(std::forward<Sources>(sources))... ) );
+                                window(source0),
+                                window(sources)... ) );
   }
 
 /*

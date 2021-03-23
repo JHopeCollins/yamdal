@@ -21,72 +21,53 @@ namespace yam
 /*
  * window is a possibly-modifying view over a source indexable
  */
-
-// overload for lvalue references - capture source by reference
-   template<indexable I>
+   template<typename I>
+      requires indexable<const I>
    [[nodiscard]]
-   constexpr view auto window( I& source )
-//    -> view_with_r<element_type_of_t<I>,
-//                   ndim_of_v<I>,
-//                   grid_of_v<I>> auto
+   constexpr view auto window( const I& source )
   {
       using index_type  = index_type_of_t<I>;
-      using return_type = element_type_of_t<I>;
+      using return_type = element_type_of_t<decltype(source)>;
 
+   // trailing return type ensures that the view returns a reference if the source returns a reference
       return [ &source ]
-            ( const index_type i ) -> return_type
+            ( index_type i ) -> return_type
            { return source(i); };
   }
 
-// overload for rvalue references - capture source by value
    template<indexable I>
+      requires (!std::is_const_v<I>)
    [[nodiscard]]
-   constexpr view auto window( I&& source )
-//    -> view_with_r<element_type_of_t<I>,
-//                   ndim_of_v<I>,
-//                   grid_of_v<I>> auto
+   constexpr view auto window( I& source )
   {
       using index_type  = index_type_of_t<I>;
-      using return_type = element_type_of_t<I>;
+      using return_type = element_type_of_t<decltype(source)>;
 
-      return [ src{std::move(source)} ]
-            ( const index_type i ) -> return_type
-           { return src(i); };
+   // trailing return type ensures that the view returns a reference if the source returns a reference
+      return [ &source ]
+            ( index_type i ) -> return_type
+           { return source(i); };
   }
 
 /*
  * cwindow is a non-modifying view over a source indexable
  */
-
-// overload for lvalue references - capture source by reference
    template<indexable I>
    [[nodiscard]]
-   constexpr view auto cwindow( I& source )
-//    -> view_with_r<const element_type_of_t<I>,
-//                   ndim_of_v<I>,
-//                   grid_of_v<I>> auto
+   constexpr view auto cwindow( const I& source )
   {
       using index_type  = index_type_of_t<I>;
-      using return_type = const element_type_of_t<I>;
+
+      using element_type = element_type_of_t<decltype(source)>;
+
+      using return_type =
+         std::conditional_t<std::is_reference_v<element_type>,
+                            const std::remove_reference_t<element_type>&,
+                            element_type>;
 
       return [ &source ]
-            ( const index_type i ) -> return_type
+            ( index_type i ) -> return_type
            { return source(i); };
   }
 
-// overload for rvalue references - capture source by value
-   template<indexable I>
-   [[nodiscard]]
-   constexpr view auto cwindow( I&& source )
-//    -> view_with_r<const element_type_of_t<I>,
-//                   ndim_of_v<I>,
-//                   grid_of_v<I>> auto
-  {
-      using index_type  = index_type_of_t<I>;
-      using return_type = const element_type_of_t<I>;
-
-      return [ src{std::move(source)} ]
-            ( const index_type i ) -> return_type
-           { return src(i); };
-  }
 }

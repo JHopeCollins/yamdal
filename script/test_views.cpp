@@ -43,8 +43,8 @@
       matrix2_t<int,ni,nj> m2{};
 
    // indexable view into memory
-      yam::indexable2_r<int&> auto arr2 =
-         [&m2]( const yam::index2<>& ij ) -> int&
+      const yam::indexable2_r<int&> auto arr2 =
+         [&m2]( yam::index2<> ij ) -> int&
         {
             const auto i = size_t(ij[0]);
             const auto j = size_t(ij[1]);
@@ -52,8 +52,8 @@
         };
 
    // generator returning 'flattened' index
-      yam::indexable2_r<int> auto flat2 =
-         [=]( const yam::index2<>& ij )
+      const yam::indexable2_r<int> auto flat2 =
+         [=]( yam::index2<> ij )
         {
             const auto i = size_t(ij[0]);
             const auto j = size_t(ij[1]);
@@ -66,8 +66,8 @@
       auto arr2_cview = yam::cwindow(arr2);
       auto arr2_view = yam::window(arr2);
 
-      auto temp_view =
-         yam::window([=]( const yam::index2<> ij )
+      const auto temp_view =
+         yam::window([=]( yam::index2<> ij )
                      { return flat2(ij); });
 
       return 0;

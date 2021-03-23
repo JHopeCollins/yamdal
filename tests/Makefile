@@ -14,7 +14,8 @@ PROGRMDIR = progrm/#		test executables
 CSOURCE = index_h.cpp \
 	external/mdspan_h.cpp \
 	utility_h.cpp \
-	span_h.cpp
+	span_h.cpp \
+	views_h.cpp
 
 # main() function file
 CSCRIPT = tests.cpp
