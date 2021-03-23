@@ -69,6 +69,7 @@ namespace yam
       using typename base_t::layout_type;
       using typename base_t::accessor_type;
       using typename base_t::mapping_type;
+      using typename base_t::reference;
 
    // constructors, assignment -------------------------------------------
       using base_t::base_t;
@@ -88,11 +89,11 @@ namespace yam
    public :
    // expand out indices into basic_mdspan::operator()
       [[nodiscard]]
-      constexpr element_type& operator()( const index_type i ) const
+      constexpr reference operator()( const index_type i ) const
      {
          return [&]<size_t... Idxs>
          ( const base_t& self,
-           std::index_sequence<Idxs...> ) -> element_type&
+           std::index_sequence<Idxs...> ) -> reference
         {
             return self(i[Idxs]...);
         }( *this, std::make_index_sequence<ndim>());
@@ -120,6 +121,8 @@ namespace yam
    using span = basic_span<ElementType,
                            stx::extents<Exts...>>;
 
+// specify grid type
+
    template<typename ElementType,
             ptrdiff_t...    Exts>
    using primal_span = basic_span<ElementType,
@@ -135,6 +138,8 @@ namespace yam
                                 default_layout,
                                 default_accessor<ElementType>,
                                 dual>;
+
+// specify dimension
 
    template<typename ElementType,
             grid_t          grid= primal>
@@ -162,5 +167,64 @@ namespace yam
                             default_layout,
                             default_accessor<ElementType>,
                             grid>;
+
+// specify dimension and grid type
+
+   // primal
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using primal_span1 = basic_span<ElementType,
+                                   stx::extents<stx::dynamic_extent>,
+                                   default_layout,
+                                   default_accessor<ElementType>,
+                                   primal>;
+
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using primal_span2 = basic_span<ElementType,
+                                   stx::extents<stx::dynamic_extent,
+                                                stx::dynamic_extent>,
+                                   default_layout,
+                                   default_accessor<ElementType>,
+                                   primal>;
+
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using primal_span3 = basic_span<ElementType,
+                                   stx::extents<stx::dynamic_extent,
+                                                stx::dynamic_extent,
+                                                stx::dynamic_extent>,
+                                   default_layout,
+                                   default_accessor<ElementType>,
+                                   primal>;
+
+   // dual
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using dual_span1 = basic_span<ElementType,
+                                 stx::extents<stx::dynamic_extent>,
+                                 default_layout,
+                                 default_accessor<ElementType>,
+                                 dual>;
+
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using dual_span2 = basic_span<ElementType,
+                                 stx::extents<stx::dynamic_extent,
+                                              stx::dynamic_extent>,
+                                 default_layout,
+                                 default_accessor<ElementType>,
+                                 dual>;
+
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using dual_span3 = basic_span<ElementType,
+                                 stx::extents<stx::dynamic_extent,
+                                              stx::dynamic_extent,
+                                              stx::dynamic_extent>,
+                                 default_layout,
+                                 default_accessor<ElementType>,
+                                 dual>;
+
 }
 

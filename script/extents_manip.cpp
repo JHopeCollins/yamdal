@@ -1,5 +1,5 @@
 
-# include <yamdal/mdspan.h>
+# include <yamdal/external/mdspan.h>
 # include <yamdal/utility.h>
 
 # include <concepts>
@@ -145,11 +145,9 @@
 
    int main()
   {
-      using namespace yam::utl;
-
       constexpr size_t j=1;
       constexpr auto result =
-         filter_sequence( std::index_sequence<0,1,2>{},
+         yam::utl::filter_sequence( std::index_sequence<0,1,2>{},
                           [](auto i){ return i!=j; } );
 
       using result_t = std::remove_cvref_t<decltype(result)>;
@@ -161,7 +159,7 @@
       using ext3_2d9 = stx::extents<2,stx::dynamic_extent,9>;
 
       constexpr ext3_2d9 ex1(8);
-      constexpr auto ex2 = replace_nth_extent<2,12>(ex1);
+      constexpr auto ex2 = yam::replace_nth_extent<2,12>(ex1);
 
       std::clog << ex1.extent(0) << "\n";
       std::clog << ex1.extent(1) << "\n";

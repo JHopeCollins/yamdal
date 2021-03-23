@@ -13,7 +13,9 @@ PROGRMDIR = progrm/#		test executables
 # test source files
 CSOURCE = index_h.cpp \
 	external/mdspan_h.cpp \
-	utility_h.cpp
+	utility_h.cpp \
+	span_h.cpp \
+	views_h.cpp
 
 # main() function file
 CSCRIPT = tests.cpp
@@ -67,17 +69,18 @@ SCRIPTOBJ = $(SCRIPT:.cpp=.o)
 
 OBJS = $(SOURCEOBJ) $(SCRIPTOBJ)
 
+COMPILER_CMD = $(CCMP) $(COPT) $(CSTD) $(CWARN) $(INCLDE) $(targetINCLDE) 
 
 #-------------------------------------
 # compilation recipes
 
 # default
 %.o : %.cpp
-	$(CCMP) $(COPT) $(CSTD) $(CWARN) $(INCLDE) $(targetINCLDE) -o $@ -c $<
+	$(COMPILER_CMD) -o $@ -c $<
 
 # executable depends on its own object file, and all source objects
 $(PROGRM) : $(PROGRMDIR)%.out : $(SCRIPTDIR)%.o $(SOURCEOBJ)
-	$(CCMP) $(COPT) $(CSTD) $(CWARN) $(INCLDE) $(targetINCLDE) -o $@ $^ $(LIBS)
+	$(COMPILER_CMD) -o $@ $^ $(LIBS)
 
 
 #-------------------------------------
@@ -101,5 +104,5 @@ clean-obj:
 
 # run test
 run: $(PROGRM)
-	$(PROGRM)
+	$(PROGRM) $(args)
 
