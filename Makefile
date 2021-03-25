@@ -11,6 +11,7 @@ CSCRIPT = test.cpp \
 	test_views.cpp \
 	test_mdspan.cpp \
 	test_reduce.cpp \
+	test_array.cpp \
 	extents_manip.cpp
 
 # compiler
