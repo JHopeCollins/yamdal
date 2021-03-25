@@ -3,6 +3,11 @@
 
 # include <experimental/mdspan>
 # include "../utility.h"
+# include "../index.h"
+
+# include <type_traits>
+# include <array>
+# include <utility>
 
 # include <cassert>
 
@@ -10,6 +15,14 @@ namespace stx = std::experimental;
 
 namespace yam
 {
+
+// default policy types for memory layouts / accessors
+
+   using default_layout = stx::layout_right;
+
+   template<typename ElementType>
+   using default_accessor = stx::accessor_basic<ElementType>;
+
 /*
  * calculation of number of elements
  */
@@ -37,7 +50,7 @@ namespace yam
  */
    template<ptrdiff_t... Exts>
    [[nodiscard]]
-   constexpr auto get_dynamic_extent_indices(
+   constexpr auto dynamic_extent_indices(
       std::integer_sequence<ptrdiff_t,Exts...> )
   {
    // enumerate extent list
@@ -55,7 +68,7 @@ namespace yam
                return (( (i==Idxs) && (Exts==stx::dynamic_extent) )||...);
            };
 
-      // actual return statement for get_dynamic_extent_indices
+      // actual return statement for dynamic_extent_indices
          return utl::filter_sequence(
                   indices_t{},
                   extent_is_dynamic );
@@ -65,10 +78,10 @@ namespace yam
 
    template<ptrdiff_t... Exts>
    [[nodiscard]]
-   constexpr auto get_dynamic_extent_indices(
+   constexpr auto dynamic_extent_indices(
       stx::extents<Exts...> )
   {
-      return get_dynamic_extent_indices( std::integer_sequence<ptrdiff_t,Exts...>{} );
+      return dynamic_extent_indices( std::integer_sequence<ptrdiff_t,Exts...>{} );
   }
 
 /*
@@ -93,7 +106,7 @@ namespace yam
             stx::extents<new_extents(Idxs,Exts)...>;
 
          constexpr std::integer_sequence new_dynamic_indices =
-             get_dynamic_extent_indices( new_extents_t{} );
+             dynamic_extent_indices( new_extents_t{} );
 
       // return new extents, copying dynamic values where needed
          return [&]<size_t... Jdxs>
@@ -133,5 +146,49 @@ namespace yam
       return required_span_size<LayoutPolicy>(
          stx::extents<Exts...>(dynamic_exts...) );
   }
+
+/*
+ * access elements of an stx::mdspan using a yam::index
+ */
+   template<typename    ElementType,
+            typename        Extents,
+            typename   LayoutPolicy,
+            typename AccessorPolicy,
+            ndim_t             ndim,
+            grid_t             grid>
+      requires (Extents::rank()==ndim)
+   [[nodiscard]]
+   constexpr auto element_access(
+      const stx::basic_mdspan<ElementType,
+                              Extents,
+                              LayoutPolicy,
+                              AccessorPolicy>& spn,
+            yam::index<ndim,grid>              idx )
+      -> typename AccessorPolicy::reference
+  {
+      using reference = typename AccessorPolicy::reference;
+
+      return [&]<size_t... Idxs>
+            ( std::index_sequence<Idxs...> ) -> reference
+           {
+               return spn(idx[Idxs]...);
+           }( std::make_index_sequence<ndim>{} );
+  }
+
+   template<ptrdiff_t... Exts>
+   [[nodiscard]]
+   auto dynamic_extents( const stx::extents<Exts...>& exts )
+  {
+      return [&exts]<size_t... Idxs>
+            ( std::index_sequence<Idxs...> )
+           {
+               using array_t =
+                  std::array<ptrdiff_t,
+                             stx::extents<Exts...>::rank_dynamic()>;
+
+               return array_t{exts.extent(Idxs)...};
+           }( dynamic_extent_indices( exts ) );
+  }
+
 }
 

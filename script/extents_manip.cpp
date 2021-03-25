@@ -16,7 +16,7 @@
 
    template<ptrdiff_t... Exts>
    [[nodiscard]]
-   constexpr auto get_dynamic_extent_indices( std::integer_sequence<ptrdiff_t,Exts...> )
+   constexpr auto dynamic_extent_indices( std::integer_sequence<ptrdiff_t,Exts...> )
   {
       constexpr auto extent_is_dynamic =
          []<size_t I>
@@ -30,9 +30,9 @@
 
    template<ptrdiff_t... Exts>
    [[nodiscard]]
-   constexpr auto get_dynamic_extent_indices( stx::extents<Exts...> )
+   constexpr auto dynamic_extent_indices( stx::extents<Exts...> )
   {
-      return get_dynamic_extent_indices( std::integer_sequence<ptrdiff_t,Exts...>{} );
+      return dynamic_extent_indices( std::integer_sequence<ptrdiff_t,Exts...>{} );
   }
 
    template<size_t             N,
@@ -121,7 +121,7 @@
       using new_extents_t = stx::extents<new_extents(Idxs,OldExts)...>;
 
       constexpr std::integer_sequence new_dynamic_indices =
-          get_dynamic_extent_indices( new_extents_t{} );
+          dynamic_extent_indices( new_extents_t{} );
 
    // return new extents, copying dynamic values where needed
       return [&]<size_t... Jdxs>

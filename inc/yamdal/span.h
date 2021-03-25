@@ -9,18 +9,11 @@
 
 namespace yam
 {
-// default policy types for spans
-
-   using default_layout = stx::layout_right;
-
-   template<typename ElementType>
-   using default_accessor = stx::accessor_basic<ElementType>;
-
 /*
  * ===============================================================
  *
- * yam::span
- *    thin wrapper around mdspan, adding an operator()(yam::index) and relevant members eg ndim, grid
+ * yam::basic_span
+ *    thin wrapper around basic_mdspan, adding an operator()(yam::index) and relevant members eg ndim, grid
  *
  * ===============================================================
  */
@@ -44,17 +37,14 @@ namespace yam
                     LayoutPolicy,
                     AccessorPolicy,
                     GRID>
-      : public stx::basic_mdspan<ElementType,
-                                 stx::extents<Exts...>,
-                                 LayoutPolicy,
-                                 AccessorPolicy>
   {
    private :
 
-      using base_t = stx::basic_mdspan<ElementType,
-                                 stx::extents<Exts...>,
-                                 LayoutPolicy,
-                                 AccessorPolicy>;
+      using mdspan_t =
+         stx::basic_mdspan<ElementType,
+                           stx::extents<Exts...>,
+                           LayoutPolicy,
+                           AccessorPolicy>;
 
    public :
 
@@ -64,16 +54,15 @@ namespace yam
    // only index_type is different from stx::basic_mdspan to facilitate `indexable` concept
       using index_type = index<ndim,grid>;
 
-      using typename base_t::element_type;
-      using typename base_t::extents_type;
-      using typename base_t::layout_type;
-      using typename base_t::accessor_type;
-      using typename base_t::mapping_type;
-      using typename base_t::reference;
+      using element_type    = typename mdspan_t::element_type;
+      using extents_type    = typename mdspan_t::extents_type;
+      using layout_type     = typename mdspan_t::layout_type;
+      using accessor_type   = typename mdspan_t::accessor_type;
+      using mapping_type    = typename mdspan_t::mapping_type;
+      using pointer         = typename mdspan_t::pointer;
+      using reference       = typename mdspan_t::reference;
 
-   // constructors, assignment -------------------------------------------
-      using base_t::base_t;
-
+   // default operations
       constexpr basic_span() = default;
       constexpr basic_span( const basic_span&  ) = default;
       constexpr basic_span(       basic_span&& ) = default;
@@ -83,21 +72,129 @@ namespace yam
 
       ~basic_span() = default;
 
-   // element accessors ---------------------------------------------
-   // only allow element access with yam::index
+   // ctors from stx::mdspan
 
-   public :
-   // expand out indices into basic_mdspan::operator()
+      constexpr explicit basic_span( const mdspan_t& m )
+         : mdspan_member(m)
+     { }
+
+      constexpr explicit basic_span( mdspan_t&& m )
+         : mdspan_member(std::move(m))
+     { }
+
+   // ctors forwarding arguments to mdspan member
+
+   // pointer and pack of dynamic indexes
+      template<typename... IndexTypes>
+      constexpr basic_span( pointer p,
+                            IndexTypes... dynamic_extents )
+         requires (std::convertible_to<IndexTypes,
+                                       typename mdspan_t::index_type>&&...)
+               && (sizeof...(IndexTypes)==mdspan_t::rank_dynamic())
+               && std::constructible_from<mdspan_t,
+                                          decltype(p),
+                                          decltype(dynamic_extents)...>
+         : mdspan_member( std::move(p), dynamic_extents... )
+     { }
+
+   // pointer and array of dynamic indexes
+      template<typename IndexType,
+               size_t N>
+      constexpr basic_span( pointer p,
+                            const std::array<IndexType,N>& dynamic_extents )
+         requires (std::convertible_to<IndexType,
+                                       typename mdspan_t::index_type>)
+               && std::constructible_from<mdspan_t,
+                                          decltype(p),
+                                          decltype(dynamic_extents)>
+         : mdspan_member( std::move(p), dynamic_extents )
+     { }
+
+   // pointer and mapping
+      constexpr basic_span( pointer p,
+                            const mapping_type& m )
+         requires std::constructible_from<mdspan_t,
+                                          decltype(p),
+                                          decltype(m)>
+         : mdspan_member( std::move(p), m )
+     { }
+
+   // pointer, mapping and accessor
+      constexpr basic_span( pointer p,
+                            const mapping_type& m,
+                            const accessor_type& a )
+         requires std::constructible_from<mdspan_t,
+                                          decltype(p),
+                                          decltype(m),
+                                          decltype(a)>
+         : mdspan_member( std::move(p), m, a )
+     { }
+
+   // element accessor ---------------------------------------------
+
       [[nodiscard]]
-      constexpr reference operator()( const index_type i ) const
+      constexpr reference operator()( index_type i ) const
      {
-         return [&]<size_t... Idxs>
-         ( const base_t& self,
-           std::index_sequence<Idxs...> ) -> reference
-        {
-            return self(i[Idxs]...);
-        }( *this, std::make_index_sequence<ndim>());
+         return element_access( mdspan_member, i );
      }
+
+   // stx::basic_mdspan-like interface
+
+      [[nodiscard]]
+      constexpr auto accessor() const { return mdspan_member.accessor(); }
+
+      [[nodiscard]]
+      constexpr auto mapping() const { return mdspan_member.mapping(); }
+
+      [[nodiscard]]
+      constexpr auto extents() const { return mdspan_member.extents(); }
+
+      [[nodiscard]]
+      constexpr auto data() const { return mdspan_member.data(); }
+
+   // indexed values
+      [[nodiscard]]
+      constexpr auto extent(size_t r) const { return mdspan_member.extent(r); }
+
+      [[nodiscard]]
+      constexpr auto stride(size_t r) const { return mdspan_member.stride(r); }
+
+   // sizes
+      [[nodiscard]]
+      constexpr auto size() const { return mdspan_member.size(); }
+
+      [[nodiscard]]
+      constexpr auto unique_size() const { return mdspan_member.unique_size(); }
+
+   // static member functions
+      [[nodiscard]]
+      static constexpr auto rank(){ return mdspan_t::rank(); }
+
+      [[nodiscard]]
+      static constexpr auto rank_dynamic(){ return mdspan_t::rank_dynamic(); }
+
+      [[nodiscard]]
+      static constexpr auto static_extent(size_t r){ return mdspan_t::static_extent(r); }
+
+      [[nodiscard]]
+      static constexpr auto is_always_unique(){ return mdspan_t::is_always_unique(); }
+
+      [[nodiscard]]
+      static constexpr auto is_always_contiguous(){ return mdspan_t::is_always_contiguous(); }
+
+      [[nodiscard]]
+      static constexpr auto is_always_strided(){ return mdspan_t::is_always_strided(); }
+
+   // non-static layout queries
+      [[nodiscard]]
+      constexpr auto is_unique() const { return mdspan_member.is_unique(); }
+
+      [[nodiscard]]
+      constexpr auto is_contiguous() const { return mdspan_member.is_contiguous(); }
+
+   private :
+
+      mdspan_t mdspan_member;
   };
 
 // deduction guide to construct from mdspan
@@ -227,4 +324,3 @@ namespace yam
                                  dual>;
 
 }
-

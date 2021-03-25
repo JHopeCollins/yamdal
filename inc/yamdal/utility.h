@@ -112,7 +112,6 @@ namespace yam::utl
 
       type data;
 
-//    explicit operator type() const { return data; }
       operator ref()        { return data; }
       operator cref() const { return data; }
   };

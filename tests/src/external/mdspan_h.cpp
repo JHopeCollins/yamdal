@@ -52,7 +52,7 @@
       REQUIRE( yam::is_empty_range( ex2_dd_t(0,0) ) );
   }
 
-   TEST_CASE( "get_dynamic_extent_indices", "[mdspan]" )
+   TEST_CASE( "dynamic_extent_indices", "[mdspan]" )
   {
       constexpr auto dyn = stx::dynamic_extent;
 
@@ -60,9 +60,9 @@
       const auto ex2_d3 = stx::extents<dyn,3>();
       const auto ex4_3d7d = stx::extents<3,dyn,7,dyn>();
 
-      using result0_t = decltype(yam::get_dynamic_extent_indices(ex2_53));
-      using result1_t = decltype(yam::get_dynamic_extent_indices(ex2_d3));
-      using result2_t = decltype(yam::get_dynamic_extent_indices(ex4_3d7d));
+      using result0_t = decltype(yam::dynamic_extent_indices(ex2_53));
+      using result1_t = decltype(yam::dynamic_extent_indices(ex2_d3));
+      using result2_t = decltype(yam::dynamic_extent_indices(ex4_3d7d));
 
       using expected0_t = std::index_sequence<>;
       using expected1_t = std::index_sequence<0>;
