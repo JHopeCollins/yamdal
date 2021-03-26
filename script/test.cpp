@@ -110,7 +110,8 @@
          yam::reduce( yam::execution::seq,
                       begin_index, exts,
                       std::plus<int>{},
-                      0,
+                      0, /* identity_v */
+                      0, /* init */
                       arr3 );
 
       std::cout << "sum of plus1: " << sum << "\n";

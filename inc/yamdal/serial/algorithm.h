@@ -142,6 +142,7 @@ namespace yam
                                 const index_type_of_t<Source> begin_index,
                                 const stx::extents<Exts...>          exts,
                                       ReduceFunc              reduce_func,
+                                      ReduceType,         /* identity_v */
                                       ReduceType                     init,
                                 const Source&                      source )
   {

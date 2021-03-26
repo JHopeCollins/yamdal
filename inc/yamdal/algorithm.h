@@ -345,6 +345,7 @@ namespace yam
       return reduce( execution::seq,
                      begin_index, exts,
                      std::forward<ReduceFunc>(reduce_func),
+                     ReduceType{}, /* identity_v */
                      std::forward<ReduceType>(init),
                      std::forward<Source>(source) );
   }
