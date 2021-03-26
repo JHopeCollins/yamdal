@@ -17,12 +17,13 @@ namespace yam
  *
  * ===============================================================
  */
-   
+
 // declaration
    template<typename    ElementType,
             typename        Extents,
             typename   LayoutPolicy = default_layout,
             typename AccessorPolicy = default_accessor<ElementType>,
+            bool           is_cspan = false,
             grid_t             GRID = primal>
    class basic_span;
 
@@ -31,11 +32,13 @@ namespace yam
             ptrdiff_t...       Exts,
             typename   LayoutPolicy,
             typename AccessorPolicy,
+            bool           is_cspan,
             grid_t             GRID>
    class basic_span<ElementType,
                     stx::extents<Exts...>,
                     LayoutPolicy,
                     AccessorPolicy,
+                    is_cspan,
                     GRID>
   {
    private :
@@ -61,6 +64,8 @@ namespace yam
       using mapping_type    = typename mdspan_t::mapping_type;
       using pointer         = typename mdspan_t::pointer;
       using reference       = typename mdspan_t::reference;
+      using const_reference =
+         const std::remove_reference_t<reference>&;
 
    // default operations
       constexpr basic_span() = default;
@@ -133,7 +138,15 @@ namespace yam
    // element accessor ---------------------------------------------
 
       [[nodiscard]]
+      constexpr const_reference operator()( index_type i ) const
+         requires (is_cspan)
+     {
+         return element_access( mdspan_member, i );
+     }
+
+      [[nodiscard]]
       constexpr reference operator()( index_type i ) const
+         requires (!is_cspan)
      {
          return element_access( mdspan_member, i );
      }
@@ -213,6 +226,8 @@ namespace yam
 
 // convenience typedefs
 
+// span --------------------------------------
+
    template<typename ElementType,
             ptrdiff_t...    Exts>
    using span = basic_span<ElementType,
@@ -226,6 +241,7 @@ namespace yam
                                   stx::extents<Exts...>,
                                   default_layout,
                                   default_accessor<ElementType>,
+                                  false,
                                   primal>;
 
    template<typename ElementType,
@@ -234,6 +250,7 @@ namespace yam
                                 stx::extents<Exts...>,
                                 default_layout,
                                 default_accessor<ElementType>,
+                                false,
                                 dual>;
 
 // specify dimension
@@ -244,6 +261,7 @@ namespace yam
                             stx::extents<stx::dynamic_extent>,
                             default_layout,
                             default_accessor<ElementType>,
+                            false,
                             grid>;
 
    template<typename ElementType,
@@ -253,6 +271,7 @@ namespace yam
                                          stx::dynamic_extent>,
                             default_layout,
                             default_accessor<ElementType>,
+                            false,
                             grid>;
 
    template<typename ElementType,
@@ -263,6 +282,7 @@ namespace yam
                                          stx::dynamic_extent>,
                             default_layout,
                             default_accessor<ElementType>,
+                            false,
                             grid>;
 
 // specify dimension and grid type
@@ -274,6 +294,7 @@ namespace yam
                                    stx::extents<stx::dynamic_extent>,
                                    default_layout,
                                    default_accessor<ElementType>,
+                                   false,
                                    primal>;
 
    template<typename ElementType,
@@ -283,6 +304,7 @@ namespace yam
                                                 stx::dynamic_extent>,
                                    default_layout,
                                    default_accessor<ElementType>,
+                                   false,
                                    primal>;
 
    template<typename ElementType,
@@ -293,6 +315,7 @@ namespace yam
                                                 stx::dynamic_extent>,
                                    default_layout,
                                    default_accessor<ElementType>,
+                                   false,
                                    primal>;
 
    // dual
@@ -302,6 +325,7 @@ namespace yam
                                  stx::extents<stx::dynamic_extent>,
                                  default_layout,
                                  default_accessor<ElementType>,
+                                 false,
                                  dual>;
 
    template<typename ElementType,
@@ -311,6 +335,7 @@ namespace yam
                                               stx::dynamic_extent>,
                                  default_layout,
                                  default_accessor<ElementType>,
+                                 false,
                                  dual>;
 
    template<typename ElementType,
@@ -321,6 +346,132 @@ namespace yam
                                               stx::dynamic_extent>,
                                  default_layout,
                                  default_accessor<ElementType>,
+                                 false,
                                  dual>;
 
+// cspan --------------------------------------
+
+   template<typename ElementType,
+            ptrdiff_t...    Exts>
+   using cspan = basic_span<ElementType,
+                            stx::extents<Exts...>,
+                            default_layout,
+                            default_accessor<ElementType>,
+                            true>;
+
+// specify grid type
+
+   template<typename ElementType,
+            ptrdiff_t...    Exts>
+   using primal_cspan = basic_span<ElementType,
+                                   stx::extents<Exts...>,
+                                   default_layout,
+                                   default_accessor<ElementType>,
+                                   true,
+                                   primal>;
+
+   template<typename ElementType,
+            ptrdiff_t...    Exts>
+   using dual_cspan = basic_span<ElementType,
+                                 stx::extents<Exts...>,
+                                 default_layout,
+                                 default_accessor<ElementType>,
+                                 true,
+                                 dual>;
+
+// specify dimension
+
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using cspan1 = basic_span<ElementType,
+                             stx::extents<stx::dynamic_extent>,
+                             default_layout,
+                             default_accessor<ElementType>,
+                             true,
+                             grid>;
+
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using cspan2 = basic_span<ElementType,
+                             stx::extents<stx::dynamic_extent,
+                                          stx::dynamic_extent>,
+                             default_layout,
+                             default_accessor<ElementType>,
+                             true,
+                             grid>;
+
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using cspan3 = basic_span<ElementType,
+                             stx::extents<stx::dynamic_extent,
+                                          stx::dynamic_extent,
+                                          stx::dynamic_extent>,
+                             default_layout,
+                             default_accessor<ElementType>,
+                             true,
+                             grid>;
+
+// specify dimension and grid type
+
+   // primal
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using primal_cspan1 = basic_span<ElementType,
+                                    stx::extents<stx::dynamic_extent>,
+                                    default_layout,
+                                    default_accessor<ElementType>,
+                                    true,
+                                    primal>;
+
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using primal_cspan2 = basic_span<ElementType,
+                                    stx::extents<stx::dynamic_extent,
+                                                 stx::dynamic_extent>,
+                                    default_layout,
+                                    default_accessor<ElementType>,
+                                    true,
+                                    primal>;
+
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using primal_cspan3 = basic_span<ElementType,
+                                    stx::extents<stx::dynamic_extent,
+                                                 stx::dynamic_extent,
+                                                 stx::dynamic_extent>,
+                                    default_layout,
+                                    default_accessor<ElementType>,
+                                    true,
+                                    primal>;
+
+   // dual
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using dual_cspan1 = basic_span<ElementType,
+                                  stx::extents<stx::dynamic_extent>,
+                                  default_layout,
+                                  default_accessor<ElementType>,
+                                  true,
+                                  dual>;
+
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using dual_cspan2 = basic_span<ElementType,
+                                  stx::extents<stx::dynamic_extent,
+                                               stx::dynamic_extent>,
+                                  default_layout,
+                                  default_accessor<ElementType>,
+                                  true,
+                                  dual>;
+
+   template<typename ElementType,
+            grid_t          grid= primal>
+   using dual_cspan3 = basic_span<ElementType,
+                                  stx::extents<stx::dynamic_extent,
+                                               stx::dynamic_extent,
+                                               stx::dynamic_extent>,
+                                  default_layout,
+                                  default_accessor<ElementType>,
+                                  true,
+                                  dual>;
 }

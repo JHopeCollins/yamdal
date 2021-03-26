@@ -350,5 +350,4 @@ namespace yam
                                    default_layout,
                                    default_accessor<ElementType>,
                                    dual>;
-
 }
