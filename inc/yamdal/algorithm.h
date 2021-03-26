@@ -1,20 +1,23 @@
 
 # pragma once
 
+# include "serial/algorithm.h"
+
+# ifdef _OPENMP
+# include "openmp/algorithm.h"
+# endif
+
 # include "views.h"
 # include "concepts.h"
 # include "index.h"
 # include "execution.h"
-# include "utility.h"
 
 # include "external/mdspan.h"
 
+# include <utility>
 # include <functional>
 # include <concepts>
-
-# ifdef _OPENMP
-# include <omp.h>
-# endif
+# include <type_traits>
 
 # include <cassert>
 
@@ -28,147 +31,6 @@ namespace yam
  *
  * ===============================================================
  */
-
-/*
- * Serial execution --------------------------------------------------
- */
-
-/*
- * 1D grid
- */
-   template<indexable1 Destination,
-            indexable1 Source,
-            ptrdiff_t... Exts>
-      requires same_grid_as<Destination,
-                            Source>
-            && std::assignable_from<element_type_of_t<Destination>,
-                                    element_type_of_t<Source>>
-            && (sizeof...(Exts)==1)
-   constexpr void assign(       execution::serial_policy,
-                          const index_type_of_t<Source> begin_index,
-                          const stx::extents<Exts...>          exts,
-                                Destination&            destination,
-                          const Source&                      source )
-  {
-      const auto i0 = begin_index[0];
-
-      for( idx_t i=i0; i<i0+exts.extent(0); ++i )
-     {
-         const index_type_of_t<Source> idx{i};
-         destination(idx) = source(idx);
-     }
-      return;
-  }
-
-/*
- * 2D grid
- */
-   template<indexable2 Destination,
-            indexable2 Source,
-            ptrdiff_t... Exts>
-      requires same_grid_as<Destination,
-                            Source>
-            && std::assignable_from<element_type_of_t<Destination>,
-                                    element_type_of_t<Source>>
-            && (sizeof...(Exts)==2)
-   constexpr void assign(       execution::serial_policy,
-                          const index_type_of_t<Source> begin_index,
-                          const stx::extents<Exts...>          exts,
-                                Destination&            destination,
-                          const Source&                      source )
-  {
-      const auto i0 = begin_index[0];
-      const auto j0 = begin_index[1];
-
-      for( idx_t i=i0; i<i0+exts.extent(0); ++i )
-     {
-         for( idx_t j=j0; j<j0+exts.extent(1); ++j )
-        {
-            const index_type_of_t<Source> idx{i,j};
-            destination(idx) = source(idx);
-        }
-     }
-
-      return;
-  }
-
-/*
- * 3D grid
- */
-   template<indexable3 Destination,
-            indexable3 Source,
-            ptrdiff_t... Exts>
-      requires same_grid_as<Destination,
-                            Source>
-            && std::assignable_from<element_type_of_t<Destination>,
-                                    element_type_of_t<Source>>
-            && (sizeof...(Exts)==3)
-   constexpr void assign(       execution::serial_policy,
-                          const index_type_of_t<Source> begin_index,
-                          const stx::extents<Exts...>          exts,
-                                Destination&            destination,
-                          const Source&                      source )
-  {
-      const auto i0 = begin_index[0];
-      const auto j0 = begin_index[1];
-      const auto k0 = begin_index[2];
-
-      for( idx_t i=i0; i<i0+exts.extent(0); ++i )
-     {
-         for( idx_t j=j0; j<j0+exts.extent(1); ++j )
-        {
-            for( idx_t k=k0; k<k0+exts.extent(2); ++k )
-           {
-               const index_type_of_t<Source> idx{i,j,k};
-               destination(idx) = source(idx);
-           }
-        }
-     }
-
-      return;
-  }
-
-
-/*
- * OpenMP execution --------------------------------------------------
- */
-
-# ifdef _OPENMP
-   template<indexable Destination,
-            indexable Source,
-            ptrdiff_t... Exts>
-      requires same_grid_as<Destination,
-                            Source>
-            && std::assignable_from<element_type_of_t<Destination>,
-                                    element_type_of_t<Source>>
-            && (sizeof...(Exts)==ndim_of_v<Source>)
-   void assign(       execution::openmp_policy,
-                const index_type_of_t<Source> begin_index,
-                const stx::extents<Exts...>          exts,
-                      Destination&            destination,
-                const Source&                      source )
-  {
-      using index_type = index_type_of_t<Source>;
-
-   # pragma omp parallel for
-      for( idx_t i=0; i<exts.extent(0); ++i )
-     {
-      // create block of only one i index, and all j,k,... etc indices
-         index_type block_begin{begin_index};
-         block_begin[0]+=i;
-
-      // make the 0th extent a static size of 1
-         const auto block_exts = replace_nth_extent<0,1>(exts);
-
-      // each thread processes their own block sequentially
-         assign( execution::seq,
-                 block_begin, block_exts,
-                 destination, source );
-     }
-
-      return;
-  }
-# endif
 
 /*
  * Convenience overloads -----------------------------------------
@@ -462,52 +324,6 @@ namespace yam
  * ===============================================================
  */
 
-   template<typename ReduceFunc,
-            typename ReduceType,
-            indexable    Source,
-            ptrdiff_t...   Exts>
-      requires reduction<ReduceFunc,
-                         ReduceType,
-                         element_type_of_t<Source>>
-            && (sizeof...(Exts)==ndim_of_v<Source>)
-   [[nodiscard]]
-   constexpr ReduceType reduce(       execution::serial_policy,
-                                const index_type_of_t<Source> begin_index,
-                                const stx::extents<Exts...>          exts,
-                                      ReduceFunc              reduce_func,
-                                      ReduceType                     init,
-                                const Source&                      source )
-  {
-      using index_type   =   index_type_of_t<Source>;
-      using element_type = element_type_of_t<Source>;
-
-   // always return reference to current reduction-value (init)
-      auto init_wrapper =
-         [ &init ]
-         ( index_type ) -> ReduceType&
-        {
-            return init;
-        };
-
-   // return reduction of ( init , element )
-      auto reducer =
-         [ &init, &reduce_func ]
-         ( const element_type& elem )
-        {
-            return std::invoke( reduce_func,
-                                std::move(init), elem );
-        };
-
-   // at each element, executes: init=reduce_func(init,element)
-      transform( execution::seq,
-                 begin_index, exts,
-                 init_wrapper,
-                 reducer,
-                 source );
-
-      return init;
-  }
-
 /*
  * Convenience overload assumes serial evaluation
  */
@@ -532,98 +348,6 @@ namespace yam
                      std::forward<ReduceType>(init),
                      std::forward<Source>(source) );
   }
-
-/*
- * OpenMP execution --------------------------------------------------
- */
-
-# ifdef _OPENMP
-/*
- * 1D OpenMP reduce
- */
-   template<typename ReduceFunc,
-            typename ReduceType,
-            indexable    Source,
-            ptrdiff_t...   Exts>
-      requires reduction<ReduceFunc,
-                         ReduceType,
-                         element_type_of_t<Source>>
-            && ( sizeof...(Exts) == ndim_of_v<Source> )
-            && ( sizeof...(Exts) == 1 )
-   [[nodiscard]]
-   ReduceType reduce(       execution::openmp_policy,
-                      const index_type_of_t<Source> begin_index,
-                      const stx::extents<Exts...>          exts,
-                            ReduceFunc              reduce_func,
-                            ReduceType                     init,
-                      const Source&                      source )
-  {
-   // reduce functor using std::invoke
-      auto rfunc =
-         [&]( auto&& arg0, auto&& arg1 )
-        {
-            return std::invoke( reduce_func,
-                     std::forward<decltype(arg0)>(arg0),
-                     std::forward<decltype(arg1)>(arg1) );
-        };
-
-   // reduction value for each thread, each on seperate cache lines
-      using reduce_t = utl::aligned_t<ReduceType>;
-      std::vector<reduce_t> thread_init;
-
-   # pragma omp parallel
-     {
-         using index_type = index_type_of_t<Source>;
-
-         const ptrdiff_t nthreads = omp_get_num_threads();
-
-      // create init values for each thread
-      # pragma omp single
-        {
-            assert(nthreads>0);
-            assert( exts.extent(0) >= 2*nthreads );
-            thread_init.resize(size_t(nthreads));
-        }
-
-      // reference to local reduction value
-         const auto thread_id = size_t(omp_get_thread_num());
-         ReduceType& my_init = thread_init[thread_id];
-
-      // initialise reduction value for each thread
-      # pragma omp for
-         for( idx_t i=0; i<nthreads; ++i )
-        {
-         // each thread uses index pairs: {0,1}, {2,3}, {4,5}... to initialise
-            const idx_t j = 2*i + begin_index[0];
-
-            const index_type idx0{j  };
-            const index_type idx1{j+1};
-
-            my_init = rfunc( source(idx0),
-                             source(idx1) );
-        }
-
-      // reduce down rest of array
-      # pragma omp for
-         for( idx_t i=2*nthreads; i<exts.extent(0); ++i )
-        {
-            const index_type idx{i+begin_index[0]};
-
-            my_init = rfunc( std::move( my_init ),
-                             source(idx) );
-        }
-     }
-
-   // reduce thread reduction values
-      for( const auto& tli : thread_init )
-     {
-         init = rfunc( std::move(init),
-                       tli );
-     }
-
-      return init;
-  }
-# endif
 
 /*
  * ===============================================================

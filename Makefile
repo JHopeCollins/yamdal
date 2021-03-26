@@ -78,7 +78,7 @@ $(PROGRM) : $(PROGRMDIR)%.out : $(SCRIPTDIR)%.o
 #-------------------------------------
 # misc recipes
 
-.PHONY : clean $(PNAMES) all mkdir names run-$(PNAMES)
+.PHONY : clean $(PNAMES) all mkdir names
 
 # delete all non-source files
 clean:
